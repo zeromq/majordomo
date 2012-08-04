@@ -1,0 +1,28 @@
+mdp(7)
+======
+
+
+NAME
+----
+mdp - the C Majordomo protocol library
+
+
+SYNOPSIS
+--------
+----
+#include <mdp.h>
+
+cc ['flags'] 'files' -lzmq -lczmq -lmdp ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Scope and Goals
+~~~~~~~~~~~~~~~
+
+MDP has these goals:
+
+* To provide a C API for Majordomo clients and workers.
+
