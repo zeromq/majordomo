@@ -9,6 +9,6 @@ Goals:
 
 Contribution process:
 
-* rfc.zeromq.org/spec:16
+* C4 process is at http://rfc.zeromq.org/spec:16
 * All commits are be backed by issues
 * All commits are made as pull requests from forked work repository
