@@ -1,5 +1,5 @@
 /*  =========================================================================
-    mdp.h - public API for client and worker applications
+    mdp_worker.h - worker API
 
     -------------------------------------------------------------------------
     Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
@@ -23,16 +23,33 @@
     =========================================================================
 */
 
-#ifndef __MDP_H_INCLUDED__
-#define __MDP_H_INCLUDED__
+#ifndef __MDWRKAPI_H_INCLUDED__
+#define __MDWRKAPI_H_INCLUDED__
 
-//  Set up environment for the application
-//
-#include "czmq.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-//  Classes listed in alphabetical order
+//  Opaque class structure
+typedef struct _mdp_worker_t mdp_worker_t;
 
-#include "mdp_client.h"
-#include "mdp_worker.h"
+//  @interface
+mdp_worker_t *
+    mdp_worker_new (char *broker,char *service, int verbose);
+void
+    mdp_worker_destroy (mdp_worker_t **self_p);
+void
+    mdp_worker_set_liveness (mdp_worker_t *self, int liveness);
+void
+    mdp_worker_set_heartbeat (mdp_worker_t *self, int heartbeat);
+void
+    mdp_worker_set_reconnect (mdp_worker_t *self, int reconnect);
+zmsg_t *
+    mdp_worker_recv (mdp_worker_t *self, zmsg_t **reply_p);
+//  @end
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

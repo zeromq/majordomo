@@ -1,14 +1,35 @@
-/*  =====================================================================
- *  mdcliapi.c - Majordomo Protocol Client API
- *  Implements the MDP/Worker spec at http://rfc.zeromq.org/spec:7.
- *  ===================================================================== */
+/*  =========================================================================
+    mdp_client.h - client API
 
-#include "mdcliapi.h"
+    -------------------------------------------------------------------------
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright other contributors as noted in the AUTHORS file.
+
+    This file is part of the Majordomo Project: http://majordomo.zeromq.org,
+    an implementation of rfc.zeromq.org/spec:18/MDP (MDP/0.2) in C.
+
+    This is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This software is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    =========================================================================
+*/
+
+#include "../include/mdp_common.h"
+#include "../include/mdp_client.h"
 
 //  Structure of our class
 //  We access these properties only via class methods
 
-struct _mdcli_t {
+struct _mdp_client_t {
     zctx_t *ctx;                //  Our context
     char *broker;
     void *client;               //  Socket to broker
@@ -21,7 +42,7 @@ struct _mdcli_t {
 //  ---------------------------------------------------------------------
 //  Connect or reconnect to broker
 
-void s_mdcli_connect_to_broker (mdcli_t *self)
+void s_mdp_client_connect_to_broker (mdp_client_t *self)
 {
     if (self->client)
         zsocket_destroy (self->ctx, self->client);
@@ -32,25 +53,22 @@ void s_mdcli_connect_to_broker (mdcli_t *self)
 }
 
 
-//  .split constructor and destructor
-//  Here we have the constructor and destructor for our mdcli class:
-
 //  ---------------------------------------------------------------------
 //  Constructor
 
-mdcli_t *
-mdcli_new (char *broker, int verbose)
+mdp_client_t *
+mdp_client_new (char *broker, int verbose)
 {
     assert (broker);
 
-    mdcli_t *self = (mdcli_t *) zmalloc (sizeof (mdcli_t));
+    mdp_client_t *self = (mdp_client_t *) zmalloc (sizeof (mdp_client_t));
     self->ctx = zctx_new ();
     self->broker = strdup (broker);
     self->verbose = verbose;
     self->timeout = 2500;           //  msecs
     self->retries = 3;              //  Before we abandon
 
-    s_mdcli_connect_to_broker (self);
+    s_mdp_client_connect_to_broker (self);
     return self;
 }
 
@@ -59,11 +77,11 @@ mdcli_new (char *broker, int verbose)
 //  Destructor
 
 void
-mdcli_destroy (mdcli_t **self_p)
+mdp_client_destroy (mdp_client_t **self_p)
 {
     assert (self_p);
     if (*self_p) {
-        mdcli_t *self = *self_p;
+        mdp_client_t *self = *self_p;
         zctx_destroy (&self->ctx);
         free (self->broker);
         free (self);
@@ -72,15 +90,11 @@ mdcli_destroy (mdcli_t **self_p)
 }
 
 
-//  .split configure retry behavior
-//  These are the class methods. We can set the request timeout and number
-//  of retry attempts, before sending requests:
-
 //  ---------------------------------------------------------------------
 //  Set request timeout
 
 void
-mdcli_set_timeout (mdcli_t *self, int timeout)
+mdp_client_set_timeout (mdp_client_t *self, int timeout)
 {
     assert (self);
     self->timeout = timeout;
@@ -91,21 +105,20 @@ mdcli_set_timeout (mdcli_t *self, int timeout)
 //  Set request retries
 
 void
-mdcli_set_retries (mdcli_t *self, int retries)
+mdp_client_set_retries (mdp_client_t *self, int retries)
 {
     assert (self);
     self->retries = retries;
 }
 
 
-//  .split send request and wait for reply
 //  Here is the send method. It sends a request to the broker and gets a
 //  reply even if it has to retry several times. It takes ownership of the
 //  request message, and destroys it when sent. It returns the reply
-//  message, or NULL if there was no reply after multiple attempts:
+//  message, or NULL if there was no reply after multiple attempts.
 
 zmsg_t *
-mdcli_send (mdcli_t *self, char *service, zmsg_t **request_p)
+mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p)
 {
     assert (self);
     assert (request_p);
@@ -128,11 +141,9 @@ mdcli_send (mdcli_t *self, char *service, zmsg_t **request_p)
         zmq_pollitem_t items [] = {
             { self->client, 0, ZMQ_POLLIN, 0 }
         };
-        //  .split body of send 
         //  On any blocking call, libzmq will return -1 if there was
         //  an error; we could in theory check for different error codes
-        //  but in practice it's OK to assume it was EINTR (Ctrl-C):
-        
+        //  but in practice it's OK to assume it was EINTR (Ctrl-C)
         int rc = zmq_poll (items, 1, self->timeout * ZMQ_POLL_MSEC);
         if (rc == -1)
             break;          //  Interrupted
@@ -162,7 +173,7 @@ mdcli_send (mdcli_t *self, char *service, zmsg_t **request_p)
         if (--retries_left) {
             if (self->verbose)
                 zclock_log ("W: no reply, reconnecting...");
-            s_mdcli_connect_to_broker (self);
+            s_mdp_client_connect_to_broker (self);
         }
         else {
             if (self->verbose)

@@ -1,21 +1,41 @@
-/*  =====================================================================
- *  mdwrkapi.c - Majordomo Protocol Worker API
- *  Implements the MDP/Worker spec at http://rfc.zeromq.org/spec:7.
- *  ===================================================================== */
+/*  =========================================================================
+    mdp_worker.h - worker API
 
-#include "mdwrkapi.h"
+    -------------------------------------------------------------------------
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright other contributors as noted in the AUTHORS file.
+
+    This file is part of the Majordomo Project: http://majordomo.zeromq.org,
+    an implementation of rfc.zeromq.org/spec:18/MDP (MDP/0.2) in C.
+
+    This is free software; you can redistribute it and/or modify it under
+    the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This software is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    =========================================================================
+*/
+
+#include "../include/mdp_common.h"
+#include "../include/mdp_worker.h"
 
 //  Reliability parameters
 #define HEARTBEAT_LIVENESS  3       //  3-5 is reasonable
 
-//  .split worker class structure
 //  This is the structure of a worker API instance. We use a pseudo-OO
 //  approach in a lot of the C examples, as well as the CZMQ binding:
 
 //  Structure of our class
 //  We access these properties only via class methods
 
-struct _mdwrk_t {
+struct _mdp_worker_t {
     zctx_t *ctx;                //  Our context
     char *broker;
     char *service;
@@ -33,16 +53,15 @@ struct _mdwrk_t {
 };
 
 
-//  .split utility functions
 //  We have two utility functions; to send a message to the broker and
-//  to (re-)connect to the broker:
+//  to (re-)connect to the broker.
 
 //  ---------------------------------------------------------------------
 //  Send message to broker
 //  If no msg is provided, creates one internally
 
 static void
-s_mdwrk_send_to_broker (mdwrk_t *self, char *command, char *option,
+s_mdp_worker_send_to_broker (mdp_worker_t *self, char *command, char *option,
                         zmsg_t *msg)
 {
     msg = msg? zmsg_dup (msg): zmsg_new ();
@@ -56,7 +75,7 @@ s_mdwrk_send_to_broker (mdwrk_t *self, char *command, char *option,
 
     if (self->verbose) {
         zclock_log ("I: sending %s to broker",
-            mdps_commands [(int) *command]);
+            mdpw_commands [(int) *command]);
         zmsg_dump (msg);
     }
     zmsg_send (&msg, self->worker);
@@ -66,7 +85,7 @@ s_mdwrk_send_to_broker (mdwrk_t *self, char *command, char *option,
 //  ---------------------------------------------------------------------
 //  Connect or reconnect to broker
 
-void s_mdwrk_connect_to_broker (mdwrk_t *self)
+void s_mdp_worker_connect_to_broker (mdp_worker_t *self)
 {
     if (self->worker)
         zsocket_destroy (self->ctx, self->worker);
@@ -76,7 +95,7 @@ void s_mdwrk_connect_to_broker (mdwrk_t *self)
         zclock_log ("I: connecting to broker at %s...", self->broker);
 
     //  Register service with broker
-    s_mdwrk_send_to_broker (self, MDPW_READY, self->service, NULL);
+    s_mdp_worker_send_to_broker (self, MDPW_READY, self->service, NULL);
 
     //  If liveness hits zero, queue is considered disconnected
     self->liveness = HEARTBEAT_LIVENESS;
@@ -84,19 +103,18 @@ void s_mdwrk_connect_to_broker (mdwrk_t *self)
 }
 
 
-//  .split constructor and destructor
-//  Here we have the constructor and destructor for our mdwrk class:
+//  Here we have the constructor and destructor for our mdp_worker class
 
 //  ---------------------------------------------------------------------
 //  Constructor
 
-mdwrk_t *
-mdwrk_new (char *broker,char *service, int verbose)
+mdp_worker_t *
+mdp_worker_new (char *broker,char *service, int verbose)
 {
     assert (broker);
     assert (service);
 
-    mdwrk_t *self = (mdwrk_t *) zmalloc (sizeof (mdwrk_t));
+    mdp_worker_t *self = (mdp_worker_t *) zmalloc (sizeof (mdp_worker_t));
     self->ctx = zctx_new ();
     self->broker = strdup (broker);
     self->service = strdup (service);
@@ -104,7 +122,7 @@ mdwrk_new (char *broker,char *service, int verbose)
     self->heartbeat = 2500;     //  msecs
     self->reconnect = 2500;     //  msecs
 
-    s_mdwrk_connect_to_broker (self);
+    s_mdp_worker_connect_to_broker (self);
     return self;
 }
 
@@ -113,11 +131,11 @@ mdwrk_new (char *broker,char *service, int verbose)
 //  Destructor
 
 void
-mdwrk_destroy (mdwrk_t **self_p)
+mdp_worker_destroy (mdp_worker_t **self_p)
 {
     assert (self_p);
     if (*self_p) {
-        mdwrk_t *self = *self_p;
+        mdp_worker_t *self = *self_p;
         zctx_destroy (&self->ctx);
         free (self->broker);
         free (self->service);
@@ -127,7 +145,6 @@ mdwrk_destroy (mdwrk_t **self_p)
 }
 
 
-//  .split configure worker
 //  We provide two methods to configure the worker API. You can set the
 //  heartbeat interval and retries to match the expected network performance.
 
@@ -135,7 +152,7 @@ mdwrk_destroy (mdwrk_t **self_p)
 //  Set heartbeat delay
 
 void
-mdwrk_set_heartbeat (mdwrk_t *self, int heartbeat)
+mdp_worker_set_heartbeat (mdp_worker_t *self, int heartbeat)
 {
     self->heartbeat = heartbeat;
 }
@@ -145,21 +162,20 @@ mdwrk_set_heartbeat (mdwrk_t *self, int heartbeat)
 //  Set reconnect delay
 
 void
-mdwrk_set_reconnect (mdwrk_t *self, int reconnect)
+mdp_worker_set_reconnect (mdp_worker_t *self, int reconnect)
 {
     self->reconnect = reconnect;
 }
 
-//  .split recv method
 //  This is the recv method; it's a little misnamed since it first sends
 //  any reply and then waits for a new request. If you have a better name
-//  for this, let me know:
+//  for this, let me know.
 
 //  ---------------------------------------------------------------------
 //  Send reply, if any, to broker and wait for next request.
 
 zmsg_t *
-mdwrk_recv (mdwrk_t *self, zmsg_t **reply_p)
+mdp_worker_recv (mdp_worker_t *self, zmsg_t **reply_p)
 {
     //  Format and send the reply if we were provided one
     assert (reply_p);
@@ -168,7 +184,7 @@ mdwrk_recv (mdwrk_t *self, zmsg_t **reply_p)
     if (reply) {
         assert (self->reply_to);
         zmsg_wrap (reply, self->reply_to);
-        s_mdwrk_send_to_broker (self, MDPW_REPLY, NULL, reply);
+        s_mdp_worker_send_to_broker (self, MDPW_FINAL, NULL, reply);
         zmsg_destroy (reply_p);
     }
     self->expect_reply = 1;
@@ -207,9 +223,8 @@ mdwrk_recv (mdwrk_t *self, zmsg_t **reply_p)
                 //  up to a null part, but for now, just save one...
                 self->reply_to = zmsg_unwrap (msg);
                 zframe_destroy (&command);
-                //  .split process message
                 //  Here is where we actually have a message to process; we
-                //  return it to the caller application:
+                //  return it to the caller application
                 return msg;     //  We have a request to process
             }
             else
@@ -217,7 +232,7 @@ mdwrk_recv (mdwrk_t *self, zmsg_t **reply_p)
                 ;               //  Do nothing for heartbeats
             else
             if (zframe_streq (command, MDPW_DISCONNECT))
-                s_mdwrk_connect_to_broker (self);
+                s_mdp_worker_connect_to_broker (self);
             else {
                 zclock_log ("E: invalid input message");
                 zmsg_dump (msg);
@@ -230,11 +245,11 @@ mdwrk_recv (mdwrk_t *self, zmsg_t **reply_p)
             if (self->verbose)
                 zclock_log ("W: disconnected from broker - retrying...");
             zclock_sleep (self->reconnect);
-            s_mdwrk_connect_to_broker (self);
+            s_mdp_worker_connect_to_broker (self);
         }
         //  Send HEARTBEAT if it's time
         if (zclock_time () > self->heartbeat_at) {
-            s_mdwrk_send_to_broker (self, MDPW_HEARTBEAT, NULL, NULL);
+            s_mdp_worker_send_to_broker (self, MDPW_HEARTBEAT, NULL, NULL);
             self->heartbeat_at = zclock_time () + self->heartbeat;
         }
     }
