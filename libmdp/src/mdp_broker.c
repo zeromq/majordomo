@@ -1,10 +1,35 @@
+/*  =========================================================================
+    mdp_broker.c - simple Majordomo Protocol broker
+
+    -------------------------------------------------------------------------
+    Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
+    Copyright other contributors as noted in the AUTHORS file.
+
+    This file is part of the Majordomo Project: http://majordomo.zeromq.org,
+    an implementation of rfc.zeromq.org/spec:18/MDP (MDP/0.2) in C.
+
+    This is free software; you can redistribute it and/or modify it under
+    the terms of the GNU General Public License as published by the Free
+    Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+    This software is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program. If not, see <http://www.gnu.org/licenses/>.
+    =========================================================================
+*/
+
+
 //
 //  Majordomo Protocol broker
 //  A minimal C implementation of the Majordomo Protocol as defined in
 //  http://rfc.zeromq.org/spec:7 and http://rfc.zeromq.org/spec:8.
 //
-#include "czmq.h"
-#include "mdp.h"
+#include "../include/mdp_common.h"
 
 //  We'd normally pull these from config data
 
@@ -12,8 +37,7 @@
 #define HEARTBEAT_INTERVAL  2500    //  msecs
 #define HEARTBEAT_EXPIRY    HEARTBEAT_INTERVAL * HEARTBEAT_LIVENESS
 
-//  .split broker class structure
-//  The broker class defines a single broker instance:
+//  The broker class defines a single broker instance
 
 typedef struct {
     zctx_t *ctx;                //  Our context
@@ -39,8 +63,7 @@ static void
 static void
     s_broker_purge (broker_t *self);
 
-//  .split service class structure
-//  The service class defines a single service instance:
+//  The service class defines a single service instance
 
 typedef struct {
     broker_t *broker;           //  Broker instance
@@ -57,8 +80,7 @@ static void
 static void
     s_service_dispatch (service_t *service, zmsg_t *msg);
 
-//  .split worker class structure
-//  The worker class defines a single worker, idle or active:
+//  The worker class defines a single worker, idle or active
 
 typedef struct {
     broker_t *broker;           //  Broker instance
@@ -80,8 +102,7 @@ static void
 static void
     s_worker_waiting (worker_t *self);
 
-//  .split broker constructor and destructor
-//  Here are the constructor and destructor for the broker:
+//  Here are the constructor and destructor for the broker
 
 static broker_t *
 s_broker_new (int verbose)
@@ -114,10 +135,9 @@ s_broker_destroy (broker_t **self_p)
     }
 }
 
-//  .split broker bind method
 //  The bind method binds the broker instance to an endpoint. We can call
 //  this multiple times. Note that MDP uses a single socket for both clients 
-//  and workers:
+//  and workers.
 
 void
 s_broker_bind (broker_t *self, char *endpoint)
@@ -126,9 +146,8 @@ s_broker_bind (broker_t *self, char *endpoint)
     zclock_log ("I: MDP broker/0.2.0 is active at %s", endpoint);
 }
 
-//  .split broker worker_msg method
-//  The worker_msg method processes one READY, REPLY, HEARTBEAT or
-//  DISCONNECT message sent to the broker by a worker:
+//  The worker_msg method processes one READY, FINAL, HEARTBEAT or
+//  DISCONNECT message sent to the broker by a worker
 
 static void
 s_broker_worker_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
@@ -158,7 +177,7 @@ s_broker_worker_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
         }
     }
     else
-    if (zframe_streq (command, MDPW_REPLY)) {
+    if (zframe_streq (command, MDPW_FINAL)) {
         if (worker_ready) {
             //  Remove & save client return envelope and insert the
             //  protocol header and service name, then rewrap envelope.
@@ -190,9 +209,8 @@ s_broker_worker_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
     zmsg_destroy (&msg);
 }
 
-//  .split broker client_msg method
 //  Process a request coming from a client. We implement MMI requests
-//  directly here (at present, we implement only the mmi.service request):
+//  directly here (at present, we implement only the mmi.service request)
 
 static void
 s_broker_client_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
@@ -235,12 +253,11 @@ s_broker_client_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
     zframe_destroy (&service_frame);
 }
 
-//  .split broker purge method
 //  The purge method deletes any idle workers that haven't pinged us in a
 //  while. We hold workers from oldest to most recent, so we can stop
 //  scanning whenever we find a live worker. This means we'll mainly stop
 //  at the first worker, which is essential when we have large numbers of
-//  workers (since we call this method in our critical path):
+//  workers (since we call this method in our critical path)
 
 static void
 s_broker_purge (broker_t *self)
@@ -258,9 +275,7 @@ s_broker_purge (broker_t *self)
     }
 }
 
-//  .split service methods
-//  Here is the implementation of the methods that work on a service:
-
+//  Here is the implementation of the methods that work on a service.
 //  Lazy constructor that locates a service by name, or creates a new
 //  service if there is no service already with that name.
 
@@ -306,8 +321,7 @@ s_service_destroy (void *argument)
     free (service);
 }
 
-//  .split service dispatch method
-//  The dispatch method sends requests to waiting workers:
+//  The dispatch method sends requests to waiting workers
 
 static void
 s_service_dispatch (service_t *self, zmsg_t *msg)
@@ -326,9 +340,7 @@ s_service_dispatch (service_t *self, zmsg_t *msg)
     }
 }
 
-//  .split worker methods
-//  Here is the implementation of the methods that work on a worker:
-
+//  Here is the implementation of the methods that work on a worker.
 //  Lazy constructor that locates a worker by identity, or creates a new
 //  worker if there is no worker already with that identity.
 
@@ -387,9 +399,8 @@ s_worker_destroy (void *argument)
     free (self);
 }
 
-//  .split worker send method
 //  The send method formats and sends a command to a worker. The caller may
-//  also provide a command option, and a message payload:
+//  also provide a command option, and a message payload.
 
 static void
 s_worker_send (worker_t *self, char *command, char *option, zmsg_t *msg)
@@ -407,7 +418,7 @@ s_worker_send (worker_t *self, char *command, char *option, zmsg_t *msg)
 
     if (self->broker->verbose) {
         zclock_log ("I: sending %s to worker",
-            mdps_commands [(int) *command]);
+            mdpw_commands [(int) *command]);
         zmsg_dump (msg);
     }
     zmsg_send (&msg, self->broker->socket);
@@ -426,9 +437,8 @@ s_worker_waiting (worker_t *self)
     s_service_dispatch (self->service, NULL);
 }
 
-//  .split main task
 //  Finally here is the main task. We create a new broker instance and
-//  then processes messages on the broker socket:
+//  then processes messages on the broker socket.
 
 int main (int argc, char *argv [])
 {

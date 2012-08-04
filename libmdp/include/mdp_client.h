@@ -1,11 +1,12 @@
 /*  =========================================================================
-    cmdp.h - CMDP wrapper
+    mdp_client.h - client API
 
     -------------------------------------------------------------------------
     Copyright (c) 1991-2012 iMatix Corporation <www.imatix.com>
     Copyright other contributors as noted in the AUTHORS file.
 
-    This file is part of the Majordomo Project: http://majordomo.zeromq.org.
+    This file is part of the Majordomo Project: http://majordomo.zeromq.org,
+    an implementation of rfc.zeromq.org/spec:18/MDP (MDP/0.2) in C.
 
     This is free software; you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License as published by
@@ -22,44 +23,31 @@
     =========================================================================
 */
 
-#ifndef __CMDP_H_INCLUDED__
-#define __CMDP_H_INCLUDED__
+#ifndef __MDCLIAPI_H_INCLUDED__
+#define __MDCLIAPI_H_INCLUDED__
 
-//  Set up environment for the application
-//
-#include <czmq.h>
-
-//  Classes listed in alphabetical order
-
-#include <cmdp_client.h>
-#include <cmdp_worker.h>
-
+#ifdef __cplusplus
+extern "C" {
 #endif
 
+//  Opaque class structure
+typedef struct _mdp_client_t mdp_client_t;
 
-//
-//  mdp.h
-//  Majordomo Protocol definitions
-//
-#ifndef __MDP_H_INCLUDED__
-#define __MDP_H_INCLUDED__
+//  @interface
+mdp_client_t *
+    mdp_client_new (char *broker, int verbose);
+void
+    mdp_client_destroy (mdp_client_t **self_p);
+void
+    mdp_client_set_timeout (mdp_client_t *self, int timeout);
+void
+    mdp_client_set_retries (mdp_client_t *self, int retries);
+zmsg_t *
+    mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p);
+//  @end
 
-//  This is the version of MDP/Client we implement
-#define MDPC_CLIENT         "MDPC01"
-
-//  This is the version of MDP/Worker we implement
-#define MDPW_WORKER         "MDPW01"
-
-//  MDP/Server commands, as strings
-#define MDPW_READY          "\001"
-#define MDPW_REQUEST        "\002"
-#define MDPW_REPLY          "\003"
-#define MDPW_HEARTBEAT      "\004"
-#define MDPW_DISCONNECT     "\005"
-
-static char *mdps_commands [] = {
-    NULL, "READY", "REQUEST", "REPLY", "HEARTBEAT", "DISCONNECT"
-};
-
+#ifdef __cplusplus
+}
 #endif
 
+#endif
