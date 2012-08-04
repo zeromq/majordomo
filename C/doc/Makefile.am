@@ -1,18 +1,6 @@
 MAN1 =
 MAN3 =
-MAN7 = czmq.7 \
-    zclock.7 \
-    zctx.7 \
-    zfile.7 \
-    zframe.7 \
-    zhash.7 \
-    zlist.7 \
-    zloop.7 \
-    zmsg.7 \
-    zsocket.7 \
-    zsockopt.7 \
-    zstr.7 \
-    zthread.7
+MAN7 = mdp.7
 MAN_DOC = $(MAN1) $(MAN3) $(MAN7)
 
 MAN_TXT = $(MAN1:%.1=%.txt)

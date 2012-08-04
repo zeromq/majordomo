@@ -42,3 +42,6 @@ win32/mdp_selftest.exe.embed.manifest
 win32/mdp_selftest.exe.embed.manifest.res
 win32/mdp_selftest.exe.intermediate.manifest
 win32/mdp_selftest.vcproj.WS200902.user.user
+src/mdbroker
+src/mdclient
+src/mdworker
