@@ -78,11 +78,11 @@ if test "x$mdp_search_libczmq" = "xyes"; then
     fi
 fi
 
-AC_CHECK_LIB(zmq, zmq_init, ,[AC_MSG_ERROR([cannot link with -lzmq, install libczmq.])])
+AC_CHECK_LIB(czmq, zctx_test, ,[AC_MSG_ERROR([cannot link with -lczmq, install libczmq.])])
 
 AC_MSG_CHECKING([whether libczmq installation works])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <czmq.h>],
-                                [zctx_test ();])
+                                [zctx_test (0);])
                ],
                [AC_MSG_RESULT([yes])],
                [AC_MSG_ERROR([no. Please specify libczmq installation prefix using --with-czmq])])
