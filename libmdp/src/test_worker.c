@@ -9,12 +9,14 @@ int main (int argc, char *argv [])
     mdp_worker_t *session = mdp_worker_new (
         "tcp://localhost:5555", "echo", verbose);
 
-    zmsg_t *reply = NULL;
     while (1) {
-        zmsg_t *request = mdp_worker_recv (session, &reply);
+        zframe_t *reply_to;
+        zmsg_t *request = mdp_worker_recv (session, &reply_to);
         if (request == NULL)
             break;              //  Worker was interrupted
-        reply = request;        //  Echo is complex... :-)
+        //  Echo message
+        mdp_worker_send (session, &request, reply_to);
+        zframe_destroy (&reply_to);
     }
     mdp_worker_destroy (&session);
     return 0;

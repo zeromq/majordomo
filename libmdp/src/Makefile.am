@@ -11,9 +11,11 @@ libmdp_la_SOURCES = \
     mdp_worker.c
 
 INCLUDES = -I$(top_srcdir)/include
-bin_PROGRAMS = mdp_broker test_client test_worker
+bin_PROGRAMS = mdp_broker test_client test_worker engine trader
 test_client_LDADD = libmdp.la
 test_worker_LDADD = libmdp.la
+engine_LDADD = libmdp.la
+trader_LDADD = libmdp.la
 
 if ON_MINGW
 libmdp_la_LDFLAGS = -no-undefined -avoid-version -version-info @LTVER@

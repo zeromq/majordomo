@@ -47,9 +47,6 @@ struct _mdp_worker_t {
     size_t liveness;            //  How many attempts left
     int heartbeat;              //  Heartbeat delay, msecs
     int reconnect;              //  Reconnect delay, msecs
-
-    int expect_reply;           //  Zero only at start
-    zframe_t *reply_to;         //  Return address, if any
 };
 
 
@@ -97,7 +94,7 @@ void s_mdp_worker_connect_to_broker (mdp_worker_t *self)
     //  Register service with broker
     s_mdp_worker_send_to_broker (self, MDPW_READY, self->service, NULL);
 
-    //  If liveness hits zero, queue is considered disconnected
+    //  If liveness hits zero, worker is considered disconnected
     self->liveness = HEARTBEAT_LIVENESS;
     self->heartbeat_at = zclock_time () + self->heartbeat;
 }
@@ -167,28 +164,16 @@ mdp_worker_set_reconnect (mdp_worker_t *self, int reconnect)
     self->reconnect = reconnect;
 }
 
-//  This is the recv method; it's a little misnamed since it first sends
-//  any reply and then waits for a new request. If you have a better name
-//  for this, let me know.
+
+//  This is the recv method; it receives a new request from a client.
+//  If reply_to_p is not NULL, a pointer to client's address is filled in.
 
 //  ---------------------------------------------------------------------
-//  Send reply, if any, to broker and wait for next request.
+//  Wait for a new request.
 
 zmsg_t *
-mdp_worker_recv (mdp_worker_t *self, zmsg_t **reply_p)
+mdp_worker_recv (mdp_worker_t *self, zframe_t **reply_to_p)
 {
-    //  Format and send the reply if we were provided one
-    assert (reply_p);
-    zmsg_t *reply = *reply_p;
-    assert (reply || !self->expect_reply);
-    if (reply) {
-        assert (self->reply_to);
-        zmsg_wrap (reply, self->reply_to);
-        s_mdp_worker_send_to_broker (self, MDPW_FINAL, NULL, reply);
-        zmsg_destroy (reply_p);
-    }
-    self->expect_reply = 1;
-
     while (TRUE) {
         zmq_pollitem_t items [] = {
             { self->worker,  0, ZMQ_POLLIN, 0 } };
@@ -221,7 +206,12 @@ mdp_worker_recv (mdp_worker_t *self, zmsg_t **reply_p)
             if (zframe_streq (command, MDPW_REQUEST)) {
                 //  We should pop and save as many addresses as there are
                 //  up to a null part, but for now, just save one...
-                self->reply_to = zmsg_unwrap (msg);
+                zframe_t *reply_to = zmsg_unwrap (msg);
+                if (reply_to_p)
+                    *reply_to_p = reply_to;
+                else
+                    zframe_destroy (&reply_to);
+
                 zframe_destroy (&command);
                 //  Here is where we actually have a message to process; we
                 //  return it to the caller application
@@ -256,4 +246,21 @@ mdp_worker_recv (mdp_worker_t *self, zmsg_t **reply_p)
     if (zctx_interrupted)
         printf ("W: interrupt received, killing worker...\n");
     return NULL;
+}
+
+
+//  ---------------------------------------------------------------------
+//  Send a report to the client.
+
+void
+mdp_worker_send (mdp_worker_t *self, zmsg_t **report_p, zframe_t *reply_to)
+{
+    assert (report_p);
+    zmsg_t *report = *report_p;
+    assert (report);
+    assert (reply_to);
+    // Add client address
+    zmsg_wrap (report, zframe_dup (reply_to));
+    s_mdp_worker_send_to_broker (self, MDPW_REPORT, NULL, report);
+    zmsg_destroy (report_p);
 }
