@@ -146,7 +146,7 @@ s_broker_bind (broker_t *self, char *endpoint)
     zclock_log ("I: MDP broker/0.2.0 is active at %s", endpoint);
 }
 
-//  The worker_msg method processes one READY, FINAL, HEARTBEAT or
+//  The worker_msg method processes one READY, REPORT, HEARTBEAT or
 //  DISCONNECT message sent to the broker by a worker
 
 static void
@@ -171,13 +171,17 @@ s_broker_worker_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
             //  Attach worker to service and mark as idle
             zframe_t *service_frame = zmsg_pop (msg);
             worker->service = s_service_require (self, service_frame);
+            zlist_append (self->waiting, worker);
+            zlist_append (worker->service->waiting, worker);
             worker->service->workers++;
-            s_worker_waiting (worker);
+            worker->expiry = zclock_time () + HEARTBEAT_EXPIRY;
+            s_service_dispatch (worker->service, NULL);
             zframe_destroy (&service_frame);
+            zclock_log ("worker created");
         }
     }
     else
-    if (zframe_streq (command, MDPW_FINAL)) {
+    if (zframe_streq (command, MDPW_REPORT)) {
         if (worker_ready) {
             //  Remove & save client return envelope and insert the
             //  protocol header and service name, then rewrap envelope.
@@ -186,7 +190,6 @@ s_broker_worker_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
             zmsg_pushstr (msg, MDPC_CLIENT);
             zmsg_wrap (msg, client);
             zmsg_send (&msg, self->socket);
-            s_worker_waiting (worker);
         }
         else
             s_worker_delete (worker, 1);
@@ -321,7 +324,9 @@ s_service_destroy (void *argument)
     free (service);
 }
 
-//  The dispatch method sends requests to waiting workers
+//  The dispatch method sends request to the worker.
+//  If no worker is available, we put the request into
+//  the queue.
 
 static void
 s_service_dispatch (service_t *self, zmsg_t *msg)
@@ -331,11 +336,16 @@ s_service_dispatch (service_t *self, zmsg_t *msg)
         zlist_append (self->requests, msg);
 
     s_broker_purge (self->broker);
-    while (zlist_size (self->waiting) && zlist_size (self->requests)) {
+    if (zlist_size (self->waiting) == 0)
+        return;
+
+    while (zlist_size (self->requests) > 0) {
         worker_t *worker = zlist_pop (self->waiting);
-        zlist_remove (self->broker->waiting, worker);
+        zlist_remove (self->waiting, worker);
         zmsg_t *msg = zlist_pop (self->requests);
         s_worker_send (worker, MDPW_REQUEST, NULL, msg);
+        //  Workers are scheduled in the RR fashion
+        zlist_append (self->waiting, worker);
         zmsg_destroy (&msg);
     }
 }
@@ -424,18 +434,6 @@ s_worker_send (worker_t *self, char *command, char *option, zmsg_t *msg)
     zmsg_send (&msg, self->broker->socket);
 }
 
-//  This worker is now waiting for work
-
-static void
-s_worker_waiting (worker_t *self)
-{
-    //  Queue to broker and service waiting lists
-    assert (self->broker);
-    zlist_append (self->broker->waiting, self);
-    zlist_append (self->service->waiting, self);
-    self->expiry = zclock_time () + HEARTBEAT_EXPIRY;
-    s_service_dispatch (self->service, NULL);
-}
 
 //  Finally here is the main task. We create a new broker instance and
 //  then processes messages on the broker socket.

@@ -45,7 +45,10 @@ void
 void
     mdp_worker_set_reconnect (mdp_worker_t *self, int reconnect);
 zmsg_t *
-    mdp_worker_recv (mdp_worker_t *self, zmsg_t **reply_p);
+    mdp_worker_recv (mdp_worker_t *self, zframe_t **reply_p);
+void
+    mdp_worker_send (mdp_worker_t *self, zmsg_t **progress_p,
+                     zframe_t *reply_to);
 //  @end
 
 #ifdef __cplusplus

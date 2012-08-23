@@ -13,7 +13,8 @@ int main (int argc, char *argv [])
     for (count = 0; count < 100000; count++) {
         zmsg_t *request = zmsg_new ();
         zmsg_pushstr (request, "Hello world");
-        zmsg_t *reply = mdp_client_send (session, "echo", &request);
+        mdp_client_send (session, "echo", &request);
+        zmsg_t *reply = mdp_client_receive (session, NULL);
         if (reply)
             zmsg_destroy (&reply);
         else

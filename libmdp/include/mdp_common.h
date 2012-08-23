@@ -29,7 +29,7 @@
 #include "czmq.h"
 
 //  This is the version of MDP/Client we implement
-#define MDPC_CLIENT         "MDPC02"
+#define MDPC_CLIENT         "MDPC0X"
 
 //  MDP/Client commands, as strings
 #define MDPC_REQUEST        "\001"
@@ -41,18 +41,17 @@ static char *mdpc_commands [] = {
 };
 
 //  This is the version of MDP/Worker we implement
-#define MDPW_WORKER         "MDPW02"
+#define MDPW_WORKER         "MDPW0X"
 
 //  MDP/Worker commands, as strings
 #define MDPW_READY          "\001"
 #define MDPW_REQUEST        "\002"
-#define MDPW_PARTIAL        "\003"
-#define MDPW_FINAL          "\003"
+#define MDPW_REPORT         "\003"
 #define MDPW_HEARTBEAT      "\004"
 #define MDPW_DISCONNECT     "\005"
 
 static char *mdpw_commands [] = {
-    NULL, "READY", "REQUEST", "PARTIAL", "FINAL", "HEARTBEAT", "DISCONNECT"
+    NULL, "READY", "REQUEST", "REPORT", "HEARTBEAT", "DISCONNECT"
 };
 
 #endif
