@@ -41,9 +41,10 @@ void
 void
     mdp_client_set_timeout (mdp_client_t *self, int timeout);
 void
-    mdp_client_set_retries (mdp_client_t *self, int retries);
-zmsg_t *
     mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p);
+zmsg_t *
+    mdp_client_receive (mdp_client_t *self, char **service_p);
+
 //  @end
 
 #ifdef __cplusplus
