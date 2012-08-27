@@ -121,7 +121,6 @@ mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p)
         zmsg_dump (request);
     }
     zmsg_send (request_p, self->client);
-    return 0;
 }
 
 //  Receive report from the broker.
