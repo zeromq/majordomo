@@ -31,7 +31,7 @@ int main (int argc, char *argv [])
     //  Wait for all trading reports
     while (1) {
         char *service = NULL;
-        zmsg_t *report = mdp_client_receive (client, &service);
+        zmsg_t *report = mdp_client_recv (client, &service);
         if (report == NULL)
             break;
         assert (zmsg_size (report) >= 2);

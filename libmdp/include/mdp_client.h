@@ -43,7 +43,7 @@ void
 void
     mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p);
 zmsg_t *
-    mdp_client_receive (mdp_client_t *self, char **service_p);
+    mdp_client_recv (mdp_client_t *self, char **service_p);
 
 //  @end
 
