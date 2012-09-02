@@ -129,7 +129,7 @@ mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p)
 //  to service string. It is caller's responsibility to free it.
 
 zmsg_t *
-mdp_client_receive (mdp_client_t *self, char **service_p)
+mdp_client_recv (mdp_client_t *self, char **service_p)
 {
     assert (self);
 
