@@ -4,7 +4,9 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libmdp.pc
 
 include_HEADERS = \
-    ../include/mdp.h
+    ../include/mdp.h \
+    ../include/mdp_client.h \
+    ../include/mdp_worker.h
 
 libmdp_la_SOURCES = \
     mdp_client.c \

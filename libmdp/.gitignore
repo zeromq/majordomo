@@ -45,3 +45,5 @@ win32/mdp_selftest.vcproj.WS200902.user.user
 src/mdp_broker
 src/test_client
 src/test_worker
+src/engine
+src/trader

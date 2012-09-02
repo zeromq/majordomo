@@ -39,8 +39,6 @@ mdp_worker_t *
 void
     mdp_worker_destroy (mdp_worker_t **self_p);
 void
-    mdp_worker_set_liveness (mdp_worker_t *self, int liveness);
-void
     mdp_worker_set_heartbeat (mdp_worker_t *self, int heartbeat);
 void
     mdp_worker_set_reconnect (mdp_worker_t *self, int reconnect);
