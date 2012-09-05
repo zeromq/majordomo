@@ -42,6 +42,12 @@ void
     mdp_worker_set_heartbeat (mdp_worker_t *self, int heartbeat);
 void
     mdp_worker_set_reconnect (mdp_worker_t *self, int reconnect);
+int
+    mdp_worker_setsockopt (mdp_worker_t *self, int option, const void *optval,
+    size_t optvallen);
+int
+    mdp_worker_getsockopt (mdp_worker_t *self, int option, void *optval,
+    size_t *optvallen);
 zmsg_t *
     mdp_worker_recv (mdp_worker_t *self, zframe_t **reply_p);
 void
