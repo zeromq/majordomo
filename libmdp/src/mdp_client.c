@@ -99,6 +99,30 @@ mdp_client_set_timeout (mdp_client_t *self, int timeout)
 }
 
 
+//  ---------------------------------------------------------------------
+//  Set client socket option
+
+int
+mdp_client_setsockopt (mdp_client_t *self, int option, const void *optval, size_t optvallen)
+{
+    assert (self);
+    assert (self->client);
+    return zmq_setsockopt (self->client, option, optval, optvallen);
+}
+
+
+//  ---------------------------------------------------------------------
+//  Get client socket option
+
+int
+mdp_client_getsockopt (mdp_client_t *self, 	int option, void *optval, size_t *optvallen)
+{
+    assert (self);
+    assert (self->client);
+    return zmq_getsockopt (self->client, option, optval, optvallen);
+}
+
+
 //  Here is the send method. It sends a request to the broker.
 //  It takes ownership of the request message, and destroys it when sent.
 

@@ -40,6 +40,12 @@ void
     mdp_client_destroy (mdp_client_t **self_p);
 void
     mdp_client_set_timeout (mdp_client_t *self, int timeout);
+int
+    mdp_client_setsockopt (mdp_client_t *self, int option, const void *optval,
+    size_t optvallen);
+int
+    mdp_client_getsockopt (mdp_client_t *self, int option, void *optval,
+    size_t *optvallen);
 void
     mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p);
 zmsg_t *
