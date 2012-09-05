@@ -165,6 +165,30 @@ mdp_worker_set_reconnect (mdp_worker_t *self, int reconnect)
 }
 
 
+//  ---------------------------------------------------------------------
+//  Set worker socket option
+
+int
+mdp_worker_setsockopt (mdp_worker_t *self, int option, const void *optval, size_t optvallen)
+{
+    assert (self);
+    assert (self->worker);
+    return zmq_setsockopt (self->worker, option, optval, optvallen);
+}
+
+
+//  ---------------------------------------------------------------------
+//  Get worker socket option
+
+int
+mdp_worker_getsockopt (mdp_worker_t *self, 	int option, void *optval, size_t *optvallen)
+{
+    assert (self);
+    assert (self->worker);
+    return zmq_getsockopt (self->worker, option, optval, optvallen);
+}
+
+
 //  This is the recv method; it receives a new request from a client.
 //  If reply_to_p is not NULL, a pointer to client's address is filled in.
 
