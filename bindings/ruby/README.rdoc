@@ -1,0 +1,158 @@
+= Majordomo - A Ruby binding for libmdp (Majordomo implementation in C)
+
+(c) 2012 Lourens Naudé (methodmissing), with README guidance and content from the Majordomo Protocol 0.2 spec (http://rfc.zeromq.org/spec:18)
+
+  http://github.com/methodmissing/majordomo_ruby
+
+== What is Majordomo ?
+
+The Majordomo Protocol (MDP) defines a reliable service-oriented request-reply dialog between :
+
+* a set of clients
+* a broker
+* a set of workers
+
+MDP covers presence, heartbeating and service-oriented request-reply processing. This extension implements MDP version 0.2, which adds support for multiple replies for a single request (http://rfc.zeromq.org/spec:18).
+
+== Why should I use it ?
+
+The goals of MDP are to:
+
+* Allow requests to be routed to workers on the basis of abstract service names.
+* Allow both peers to detect disconnection of the other peer, through the use of heartbeating.
+* Allow the broker to implement a "least recently used" pattern for task distribution to workers for a given service.
+* Allow the broker to recover from dead or disconnected workers by resending requests to other workers.
+
+== What are clients and workers ?
+
+Clients are applications that issue requests. Workers process them and are idempotent, thus it is safe to execute the same request more than once. Workers will handle at most one request a time, and will issue exactly one reply for each successful request.
+
+== Reliability
+
+The Majordomo pattern is designed to extend the basic ØMQ request-reply pattern with the ability to detect and recover from a specific set of failures:
+
+* Worker applications which crash, run too slowly, or freeze.
+* Worker applications that are disconnected from the network (temporarily or permanently).
+* Client applications that are temporarily disconnected from the network.
+* A queue broker that crashes and is restarted.
+* A queue broker that suffers a permanent failure.
+* Requests or replies that are lost due to any of these failures.
+
+== Scalability and Performance
+
+Majordomo is designed to be scalable to large numbers (thousands) of workers and clients, limited only by system resources on the broker. Partitioning of workers by service allows for multiple applications to share the same broker infrastructure.
+
+== Usage
+
+==== Start the broker
+
+    Lourenss-MacBook-Air:src lourens$ mdp_broker -v
+    12-09-06 02:05:06 I: MDP broker/0.2.0 is active at tcp://*:5555
+
+==== Start a worker
+
+    2.0.0dev :001 > require 'majordomo'
+     => true 
+    2.0.0dev :002 > w = Majordomo::Worker.new("tcp://localhost:5555", "service", true)
+    12-09-06 02:02:45 I: connecting to broker at tcp://localhost:5555...
+    12-09-06 02:02:45 I: sending READY to broker
+    --------------------------------------
+    [000] 
+    [006] MDPW0X
+    [001] 01
+    [007] service
+     => #<Majordomo::Worker:0x007fc533927840> 
+    2.0.0dev :003 > w.recv
+    12-09-06 02:03:06 I: received message from broker:
+    --------------------------------------
+    [000] 
+    [006] MDPW0X
+    [001] 04
+    12-09-06 02:03:06 I: sending HEARTBEAT to broker
+    --------------------------------------
+    [000] 
+    [006] MDPW0X
+    [001] 04
+    12-09-06 02:03:06 I: received message from broker:
+    --------------------------------------
+    [000] 
+    [006] MDPW0X
+    [001] 04
+    12-09-06 02:03:06 I: received message from broker:
+    --------------------------------------
+    [000] 
+    [006] MDPW0X
+    [001] 04
+    12-09-06 02:03:06 I: received message from broker:
+    --------------------------------------
+    [000] 
+    [006] MDPW0X
+    [001] 05
+    12-09-06 02:03:06 I: connecting to broker at tcp://localhost:5555...
+    12-09-06 02:03:06 I: sending READY to broker
+    --------------------------------------
+    [000] 
+    [006] MDPW0X
+    [001] 01
+    [007] service
+
+==== Start a client
+
+    2.0.0dev :001 > require 'majordomo'
+     => true 
+    2.0.0dev :002 > c = Majordomo::Client.new("tcp://localhost:5555", true)
+    12-09-06 02:00:11 I: connecting to broker at tcp://localhost:5555...
+     => #<Majordomo::Client:0x007ffc738d71c0> 
+    2.0.0dev :003 > c.send("service", "message")
+    12-09-06 02:00:26 I: send request to 'service' service:
+    --------------------------------------
+    [000] 
+    [006] MDPC0X
+    [007] service
+    [007] message
+     => true
+
+See the test/ folder for further use cases - runnable examples forthcoming.
+
+== Resources
+
+* ZeroMQ - http://www.zeromq.org/community
+* CZMQ - http://czmq.zeromq.org/
+* The Majordomo pattern - http://zguide.zeromq.org/page:all#Service-Oriented-Reliable-Queuing-Majordomo-Pattern
+* Majordomo protocol - http://rfc.zeromq.org/spec:7
+* Majordomo protocol 0.2 - http://rfc.zeromq.org/spec:18
+
+== Requirements
+
+* A POSIX compliant OS, known to work well on Linux, BSD variants and Mac OS X
+* Ruby MRI 1.8, 1.9, 2.x or Rubinius (JRuby capi support is deprecated)
+* A C compiler
+* ZeroMQ - http://www.zeromq.org/intro:get-the-software
+* CZMQ - http://czmq.zeromq.org/
+* libmdp - https://github.com/zeromq/majordomo
+
+== Installation
+
+Rubygems installation
+
+    gem install mdp
+
+Building from source
+
+    git clone git@github.com:methodmissing/majordomo_ruby
+    rake
+
+Running tests
+
+    rake test
+
+OS X notes:
+
+If you are installing ZeroMQ and CZMQ on a new Mac ensure you have libtool and autoconf installed.  
+You can get those with the brew packaging system:
+
+    brew install libtool autoconf automake
+
+== Contact, feedback and bugs
+
+Please log bugs and suggestions at https://github.com/methodmissing/majordomo_ruby/issues
