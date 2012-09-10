@@ -71,6 +71,7 @@ typedef struct {
     zlist_t *requests;          //  List of client requests
     zlist_t *waiting;           //  List of waiting workers
     size_t workers;             //  How many workers we have
+    zlist_t *blacklist;
 } service_t;
 
 static service_t *
@@ -78,7 +79,14 @@ static service_t *
 static void
     s_service_destroy (void *argument);
 static void
-    s_service_dispatch (service_t *service, zmsg_t *msg);
+    s_service_dispatch (service_t *service, zframe_t *sender, zmsg_t *msg);
+static void
+    s_service_enable_command (service_t *self, const char *command);
+static void
+    s_service_disable_command (service_t *self, const char *command);
+static int
+    s_service_is_command_enabled (service_t *self, const char *command);
+
 
 //  The worker class defines a single worker, idle or active
 
@@ -175,7 +183,7 @@ s_broker_worker_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
             zlist_append (worker->service->waiting, worker);
             worker->service->workers++;
             worker->expiry = zclock_time () + HEARTBEAT_EXPIRY;
-            s_service_dispatch (worker->service, NULL);
+            s_service_dispatch (worker->service, NULL, NULL);
             zframe_destroy (&service_frame);
             zclock_log ("worker created");
         }
@@ -223,9 +231,6 @@ s_broker_client_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
     zframe_t *service_frame = zmsg_pop (msg);
     service_t *service = s_service_require (self, service_frame);
 
-    //  Set reply return address to client sender
-    zmsg_wrap (msg, zframe_dup (sender));
-
     //  If we got a MMI service request, process that internally
     if (zframe_size (service_frame) >= 4
     &&  memcmp (zframe_data (service_frame), "mmi.", 4) == 0) {
@@ -238,21 +243,51 @@ s_broker_client_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
             free (name);
         }
         else
+        // The filter service that can be used to manipulate
+        // the command filter table.
+        if (zframe_streq (service_frame, "mmi.filter")
+        && zmsg_size (msg) == 3) {
+            zframe_t *operation = zmsg_pop (msg);
+            zframe_t *service_frame = zmsg_pop (msg);
+            zframe_t *command_frame = zmsg_pop (msg);
+            char *command_str = zframe_strdup (command_frame);
+
+            if (zframe_streq (operation, "enable")) {
+                service_t *service = s_service_require (self, service_frame);
+                s_service_enable_command (service, command_str);
+                return_code = "200";
+            }
+            else
+            if (zframe_streq (operation, "disable")) {
+                service_t *service = s_service_require (self, service_frame);
+                s_service_disable_command (service, command_str);
+                return_code = "200";
+            }
+            else
+                return_code = "400";
+
+            zframe_destroy (&operation);
+            zframe_destroy (&service_frame);
+            zframe_destroy (&command_frame);
+            free (command_str);
+            //  Add an empty frame; it will be replaced by the return code.
+            zmsg_pushstr (msg, "");
+        }
+        else
             return_code = "501";
 
         zframe_reset (zmsg_last (msg), return_code, strlen (return_code));
 
-        //  Remove & save client return envelope and insert the
-        //  protocol header and service name, then rewrap envelope.
-        zframe_t *client = zmsg_unwrap (msg);
+        //  Insert the protocol header and service name, then rewrap envelope.
         zmsg_push (msg, zframe_dup (service_frame));
         zmsg_pushstr (msg, MDPC_CLIENT);
-        zmsg_wrap (msg, client);
+        zmsg_wrap (msg, zframe_dup (sender));
         zmsg_send (&msg, self->socket);
     }
     else
         //  Else dispatch the message to the requested service
-        s_service_dispatch (service, msg);
+        s_service_dispatch (service, sender, msg);
+
     zframe_destroy (&service_frame);
 }
 
@@ -296,6 +331,7 @@ s_service_require (broker_t *self, zframe_t *service_frame)
         service->name = name;
         service->requests = zlist_new ();
         service->waiting = zlist_new ();
+        service->blacklist = zlist_new ();
         zhash_insert (self->services, name, service);
         zhash_freefn (self->services, name, s_service_destroy);
         if (self->verbose)
@@ -318,8 +354,15 @@ s_service_destroy (void *argument)
         zmsg_t *msg = zlist_pop (service->requests);
         zmsg_destroy (&msg);
     }
+    //  Free memory keeping  blacklisted commands.
+    char *command = (char *) zlist_first (service->blacklist);
+    while (command) {
+        zlist_remove (service->blacklist, command);
+        free (command);
+    }
     zlist_destroy (&service->requests);
     zlist_destroy (&service->waiting);
+    zlist_destroy (&service->blacklist);
     free (service->name);
     free (service);
 }
@@ -329,11 +372,28 @@ s_service_destroy (void *argument)
 //  the queue.
 
 static void
-s_service_dispatch (service_t *self, zmsg_t *msg)
+s_service_dispatch (service_t *self, zframe_t *sender, zmsg_t *msg)
 {
     assert (self);
-    if (msg)                    //  Queue message if any
-        zlist_append (self->requests, msg);
+
+    if (msg) {
+        int enabled = 1;
+        if (zmsg_size (msg) >= 1) {
+            zframe_t *cmd_frame = zmsg_first (msg);
+            char *cmd = zframe_strdup (cmd_frame);
+            enabled = s_service_is_command_enabled (self, cmd);
+            free (cmd);
+        }
+        //  If the command is blacklisted, we drop the message;
+        //  otherwise, we queue the message.
+        if (enabled) {
+            //  Set reply return address to client sender
+            zmsg_wrap (msg, zframe_dup (sender));
+            zlist_append (self->requests, msg);
+        }
+        else
+            zmsg_destroy (&msg);
+    }
 
     s_broker_purge (self->broker);
     if (zlist_size (self->waiting) == 0)
@@ -348,6 +408,37 @@ s_service_dispatch (service_t *self, zmsg_t *msg)
         zlist_append (self->waiting, worker);
         zmsg_destroy (&msg);
     }
+}
+
+static void
+s_service_enable_command (service_t *self, const char *command)
+{
+    char *item = (char *) zlist_first (self->blacklist);
+    while (item && !streq (item, command))
+        item = (char *) zlist_next (self->blacklist);
+    if (item) {
+        zlist_remove (self->blacklist, item);
+        free (item);
+    }
+}
+
+static void
+s_service_disable_command (service_t *self, const char *command)
+{
+    char *item = (char *) zlist_first (self->blacklist);
+    while (item && !streq (item, command))
+        item = (char *) zlist_next (self->blacklist);
+    if (!item)
+        zlist_push (self->blacklist, strdup (command));
+}
+
+static int
+s_service_is_command_enabled (service_t *self, const char *command)
+{
+    char *item = (char *) zlist_first (self->blacklist);
+    while (item && !streq (item, command))
+        item = (char *) zlist_next (self->blacklist);
+    return item? 0: 1;
 }
 
 //  Here is the implementation of the methods that work on a worker.
