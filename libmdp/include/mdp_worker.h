@@ -34,23 +34,23 @@ extern "C" {
 typedef struct _mdp_worker_t mdp_worker_t;
 
 //  @interface
-mdp_worker_t *
+CZMQ_EXPORT mdp_worker_t *
     mdp_worker_new (char *broker,char *service, int verbose);
-void
+CZMQ_EXPORT void
     mdp_worker_destroy (mdp_worker_t **self_p);
-void
+CZMQ_EXPORT void
     mdp_worker_set_heartbeat (mdp_worker_t *self, int heartbeat);
-void
+CZMQ_EXPORT void
     mdp_worker_set_reconnect (mdp_worker_t *self, int reconnect);
-int
+CZMQ_EXPORT int
     mdp_worker_setsockopt (mdp_worker_t *self, int option, const void *optval,
     size_t optvallen);
-int
+CZMQ_EXPORT int
     mdp_worker_getsockopt (mdp_worker_t *self, int option, void *optval,
     size_t *optvallen);
-zmsg_t *
+CZMQ_EXPORT zmsg_t *
     mdp_worker_recv (mdp_worker_t *self, zframe_t **reply_p);
-void
+CZMQ_EXPORT void
     mdp_worker_send (mdp_worker_t *self, zmsg_t **progress_p,
                      zframe_t *reply_to);
 //  @end
