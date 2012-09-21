@@ -351,7 +351,7 @@ s_service_destroy (void *argument)
 {
     service_t *service = (service_t *) argument;
     while (zlist_size (service->requests)) {
-        zmsg_t *msg = zlist_pop (service->requests);
+        zmsg_t *msg = (zmsg_t*)zlist_pop (service->requests);
         zmsg_destroy (&msg);
     }
     //  Free memory keeping  blacklisted commands.
@@ -400,9 +400,9 @@ s_service_dispatch (service_t *self, zframe_t *sender, zmsg_t *msg)
         return;
 
     while (zlist_size (self->requests) > 0) {
-        worker_t *worker = zlist_pop (self->waiting);
+        worker_t *worker = (worker_t*)zlist_pop (self->waiting);
         zlist_remove (self->waiting, worker);
-        zmsg_t *msg = zlist_pop (self->requests);
+        zmsg_t *msg = (zmsg_t*)zlist_pop (self->requests);
         s_worker_send (worker, MDPW_REQUEST, NULL, msg);
         //  Workers are scheduled in the RR fashion
         zlist_append (self->waiting, worker);
