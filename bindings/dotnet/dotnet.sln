@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zeromq.majordomo", "zeromq.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zeromq.majordomo.test.clientconsole", "zeromq.majordomo.testclient\zeromq.majordomo.test.clientconsole.csproj", "{0B1F4A9C-6356-4E3C-B1E2-329B9832FAFF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "zeromq.majordomo.test.workerconsole", "zeromq.majordomo.test.workerconsole\zeromq.majordomo.test.workerconsole.csproj", "{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -35,6 +37,16 @@ Global
 		{0B1F4A9C-6356-4E3C-B1E2-329B9832FAFF}.Release|Win32.ActiveCfg = Release|x86
 		{0B1F4A9C-6356-4E3C-B1E2-329B9832FAFF}.Release|x86.ActiveCfg = Release|x86
 		{0B1F4A9C-6356-4E3C-B1E2-329B9832FAFF}.Release|x86.Build.0 = Release|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Debug|Win32.ActiveCfg = Debug|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Debug|x86.ActiveCfg = Debug|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Debug|x86.Build.0 = Debug|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Release|Mixed Platforms.Build.0 = Release|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Release|Win32.ActiveCfg = Release|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Release|x86.ActiveCfg = Release|x86
+		{2CF539D0-BE03-4B05-BF9E-72B27E4B4A92}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
