@@ -1,1 +1,0 @@
-C:\Users\jam\code\majordomo\bindings\dotnet\zeromq.majordomo.testclient\obj\x86\Debug\ResolveAssemblyReference.cache
