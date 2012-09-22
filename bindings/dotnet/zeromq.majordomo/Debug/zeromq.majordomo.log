@@ -1,0 +1,9 @@
+﻿Build started 9/22/2012 3:34:52 PM.
+     1>Project "C:\Users\jam\code\majordomo\bindings\dotnet\zeromq.majordomo\zeromq.majordomo.vcxproj" on node 2 (clean target(s)).
+     1>_PrepareForClean:
+         Deleting file "Debug\zeromq.majordomo.lastbuildstate".
+     1>Done Building Project "C:\Users\jam\code\majordomo\bindings\dotnet\zeromq.majordomo\zeromq.majordomo.vcxproj" (clean target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.04
