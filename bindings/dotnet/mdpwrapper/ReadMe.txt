@@ -1,38 +1,40 @@
 ========================================================================
-    DYNAMIC LINK LIBRARY : zeromq.majordomo Project Overview
+    DYNAMIC LINK LIBRARY : mdpwrapper Project Overview
 ========================================================================
 
-AppWizard has created this zeromq.majordomo DLL for you.  
+AppWizard has created this mdpwrapper DLL for you.
 
 This file contains a summary of what you will find in each of the files that
-make up your zeromq.majordomo application.
+make up your mdpwrapper application.
 
-zeromq.majordomo.vcxproj
-    This is the main project file for VC++ projects generated using an Application Wizard. 
-    It contains information about the version of Visual C++ that generated the file, and 
+
+mdpwrapper.vcxproj
+    This is the main project file for VC++ projects generated using an Application Wizard.
+    It contains information about the version of Visual C++ that generated the file, and
     information about the platforms, configurations, and project features selected with the
     Application Wizard.
 
-zeromq.majordomo.vcxproj.filters
+mdpwrapper.vcxproj.filters
     This is the filters file for VC++ projects generated using an Application Wizard. 
     It contains information about the association between the files in your project 
     and the filters. This association is used in the IDE to show grouping of files with
     similar extensions under a specific node (for e.g. ".cpp" files are associated with the
     "Source Files" filter).
 
-zeromq.majordomo.cpp
+mdpwrapper.cpp
     This is the main DLL source file.
 
-zeromq.majordomo.h
-    This file contains a class declaration.
+/////////////////////////////////////////////////////////////////////////////
+Other standard files:
 
-AssemblyInfo.cpp
-	Contains custom attributes for modifying assembly metadata.
+StdAfx.h, StdAfx.cpp
+    These files are used to build a precompiled header (PCH) file
+    named mdpwrapper.pch and a precompiled types file named StdAfx.obj.
 
 /////////////////////////////////////////////////////////////////////////////
 Other notes:
 
-AppWizard uses "TODO:" to indicate parts of the source code you
+AppWizard uses "TODO:" comments to indicate parts of the source code you
 should add to or customize.
 
 /////////////////////////////////////////////////////////////////////////////

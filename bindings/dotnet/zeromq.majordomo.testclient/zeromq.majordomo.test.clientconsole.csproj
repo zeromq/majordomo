@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -47,15 +50,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\zeromq.majordomo\zeromq.majordomo.vcxproj">
-      <Project>{B15631F1-BD9D-4B7C-8FC2-C07E8A7E451F}</Project>
-      <Name>zeromq.majordomo</Name>
+    <ProjectReference Include="..\zeromq.majordomo.csharp\zeromq.majordomo.csharp.csproj">
+      <Project>{19176FD4-132B-4F17-B50C-2D9AD4D15435}</Project>
+      <Name>zeromq.majordomo.csharp</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(SolutionDir)\deps\libmdp\bin\libmdp.dll $(TargetDir).
-copy $(SolutionDir)\deps\zeromq\bin\libzmq.dll $(TargetDir).
+    <PostBuildEvent>copy $(SolutionDir)$(ConfigurationName)\libmdp.dll $(TargetDir).
+copy $(SolutionDir)$(ConfigurationName)\libzmq.dll $(TargetDir).
+copy $(SolutionDir)$(ConfigurationName)\mdpwrapper.dll $(TargetDir).
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
