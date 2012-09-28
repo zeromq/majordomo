@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("zeromq.majordomo.test.workerconsole")]
+[assembly: AssemblyTitle("zeromq.majordomo.csharp")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Hewlett-Packard Company")]
-[assembly: AssemblyProduct("zeromq.majordomo.test.workerconsole")]
+[assembly: AssemblyProduct("zeromq.majordomo.csharp")]
 [assembly: AssemblyCopyright("Copyright © Hewlett-Packard Company 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0ea221df-7cb8-423f-9b8e-5eab0d213956")]
+[assembly: Guid("7e0e3707-aaee-419f-8f28-a03f7ea665f2")]
 
 // Version information for an assembly consists of the following four values:
 //
