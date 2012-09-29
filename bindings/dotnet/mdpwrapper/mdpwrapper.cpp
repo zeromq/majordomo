@@ -73,3 +73,22 @@ void client_recv (mdp_client_t *self, char **service_p, char **response_p )
 		}
 	}
 }
+
+void client_send( mdp_client_t *self, char *service, zmsg_t **msg_p )
+{
+}
+
+zmsg_t* msg_new()
+{
+	return zmsg_new();
+}
+
+int push_str( zmsg_t* msg, char* str )
+{
+	return zmsg_pushstr( msg, str );
+}
+
+int push_mem( zmsg_t* msg, const void* buffer, int length )
+{
+	return zmsg_pushmem( msg, buffer, length );
+}

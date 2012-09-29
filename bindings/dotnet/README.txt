@@ -2,7 +2,7 @@
 
 Dependencies
 -------------------------------
-mdpwrapper depends on zeromq, libmdp and czmq.  The libraries and header files for these dependencies
+mdpwrapper depends on zeromq 3, libmdp and czmq.  The libraries and header files for these dependencies
 are in the deps directory under the solution directory. 
 
 Projects

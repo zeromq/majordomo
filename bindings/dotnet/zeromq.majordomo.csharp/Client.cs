@@ -12,12 +12,35 @@ namespace zeromq.majordomo.csharp
         static extern IntPtr _client_new(String broker, int verbose);
         [DllImport("mdpwrapper.dll", CallingConvention=CallingConvention.Cdecl, EntryPoint="#1")]
         static extern void _client_destroy(out IntPtr handle);
-        [DllImport("mdpwrapper.dll", CharSet=CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, EntryPoint = "#6")]
+        [DllImport("mdpwrapper.dll", CharSet=CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, EntryPoint = "#7")]
         static extern void _client_send_string(IntPtr handle, String service, String message );
         [DllImport("mdpwrapper.dll",  CallingConvention = CallingConvention.Cdecl, EntryPoint = "#4")]
         static extern void _client_recv(IntPtr handle, IntPtr service, IntPtr message );
-        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#6")]
+        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#8")]
         static extern void _client_set_timeout(IntPtr handle, int timeout);
+        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#10")]
+        static extern IntPtr _msg_new();
+        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#11")]
+        static extern int _push_mem(IntPtr msg_handle, byte[] buffer, int length );
+        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#5")]
+        static extern void _client_send( IntPtr handle, String service, out IntPtr msg_handle );
+
+        internal static void client_send(Request request)
+        {
+            // todo implement me
+        }
+
+
+        internal static void push_mem(IntPtr msg_handle, byte[] buffer)
+        {
+            int rc = _push_mem(msg_handle, buffer, buffer.Length);
+
+        }
+
+        internal static IntPtr msg_new()
+        {
+            return _msg_new();
+        }
 
         internal static void client_set_timeout(IntPtr handle, int timeout)
         {
@@ -83,6 +106,10 @@ namespace zeromq.majordomo.csharp
         public void Send( String service, String message )
         {
             Wrapper.client_send_string( handle, service, message );
+        }
+
+        public void Send(Request request)
+        {
         }
 
         /*

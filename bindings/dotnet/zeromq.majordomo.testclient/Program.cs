@@ -17,6 +17,9 @@ namespace zeromq.majordomo.testclient
         {
             using (Client client = new Client("tcp://192.168.1.7:5555", true))
             {
+                Request request = new Request("echo");
+                request.PushMem(Encoding.Unicode.GetBytes("foo bar baz"));
+
                 client.Send("echo", "hello");
                 
                 Response response = client.Recv();
