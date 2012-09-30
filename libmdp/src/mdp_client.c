@@ -170,11 +170,12 @@ mdp_client_recv (mdp_client_t *self, char **service_p)
     //  Message format:
     //  Frame 1: empty frame (delimiter)
     //  Frame 2: "MDPCxy" (six bytes, MDP/Client x.y)
-    //  Frame 3: Service name (printable string)
-    //  Frame 4..n: Application frames
+    //  Frame 3: REPORT|NAK
+    //  Frame 4: Service name (printable string)
+    //  Frame 5..n: Application frames
 
     //  We would handle malformed replies better in real code
-    assert (zmsg_size (msg) >= 4);
+    assert (zmsg_size (msg) >= 5);
 
     zframe_t *empty = zmsg_pop (msg);
     assert (zframe_streq (empty, ""));
