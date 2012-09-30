@@ -49,27 +49,48 @@ void client_send_string( mdp_client_t *self, char *service, char *msg )
 }
 
 
-void client_recv (mdp_client_t *self, char **service_p, char **response_p )
+zmsg_t* client_recv (mdp_client_t *self, char **service_p  )
 {
-	*response_p = NULL;
-	zmsg_t* reply = mdp_client_recv( self, service_p );
-	if( reply ) {
-		size_t buffer_size = zmsg_content_size( reply ) + 1;
-		*response_p = (char*)malloc( buffer_size );
-		memset( *response_p, 0, buffer_size );
+	return mdp_client_recv( self, service_p );
+}
 
-		char* p = *response_p;
-		
-		while(true) {
-			zframe_t* frame = zmsg_pop( reply );
-			if( frame ) {
-				size_t frame_size = zframe_size(frame);
-				memcpy( p, zframe_data(frame), frame_size );
-				p += frame_size;
-				zframe_destroy(&frame);
-			} else {
-				break;
-			}
-		}
-	}
+void client_send( mdp_client_t *self, char *service, zmsg_t **msg_p )
+{
+	mdp_client_send( self, service, msg_p );
+}
+
+zmsg_t* msg_new()
+{
+	return zmsg_new();
+}
+
+int push_str( zmsg_t* msg, char* str )
+{
+	return zmsg_pushstr( msg, str );
+}
+
+int push_mem( zmsg_t* msg, const void* buffer, int length )
+{
+	return zmsg_pushmem( msg, buffer, length );
+}
+
+void msg_destroy( zmsg_t **msg_p )
+{
+	zmsg_destroy( msg_p );
+}
+void frame_destroy( zframe_t **frame_p )
+{
+	zframe_destroy( frame_p );
+}
+
+int pop_mem( zmsg_t* msg, void** buffer ) 
+{
+	int buffer_size = 0;
+	*buffer = NULL;
+	zframe_t* frame = zmsg_pop( msg );
+	buffer_size = zframe_size( frame );
+	*buffer = malloc( buffer_size );
+	memcpy( *buffer, zframe_data( frame ), buffer_size );
+	zframe_destroy( &frame );
+	return buffer_size;
 }
