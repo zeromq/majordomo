@@ -32,8 +32,12 @@ MDPWRAPPER_API int client_setsockopt (mdp_client_t *self, int option, const void
 MDPWRAPPER_API int client_getsockopt (mdp_client_t *self, int option, void *optval,    size_t *optvallen);
 MDPWRAPPER_API void client_send_data (mdp_client_t *self, char *service, char *data, int size );
 MDPWRAPPER_API void client_send_string (mdp_client_t *self, char *service, char *msg );
-MDPWRAPPER_API void client_recv (mdp_client_t *self, char **service_p, char **response_p);
+MDPWRAPPER_API zmsg_t* client_recv (mdp_client_t *self, char **service_p);
 MDPWRAPPER_API void client_send( mdp_client_t *self, char *service, zmsg_t **msg_p );
 MDPWRAPPER_API zmsg_t* msg_new();
 MDPWRAPPER_API int push_str( zmsg_t* msg, char* str );
 MDPWRAPPER_API int push_mem( zmsg_t* msg, const void* buffer, int length );
+MDPWRAPPER_API void msg_destroy( zmsg_t **msg_p );
+MDPWRAPPER_API void frame_destroy( zframe_t **frame_p );
+MDPWRAPPER_API int pop_mem( zmsg_t* msg, void** buffer ) ;
+

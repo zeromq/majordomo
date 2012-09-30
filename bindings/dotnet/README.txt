@@ -17,16 +17,24 @@ libzmq.dll libmdp.dll and mdpwrapper.dll have to be in your applications search 
 Usage Example:
 
 // instantiates client, sends a message and cleans up
-using( Client c = new Client( "tcp://192.168.1.7:5555" ) )
+using (Client client = new Client("tcp://192.168.1.7:5555", true))
 {
-	c.Send( "my service", "I like cheese" );
-	Response r = c.Recv();
+	Request request = client.CreateRequest("echo") ;
+	request.PushMem(Encoding.Unicode.GetBytes("foo bar baz")); 
+	request.PushString("Tasty cheese!");
+	request.Send();
 
-	if( r != null )
-	{
-		r.Print();
-	}
+	// reads response, using calls Dispose to clean up resources when
+	// response goes out of scope
+    using (Response response = client.Recv())
+    {
+        string stringcontents = response.PopString();
+        byte[] buff = response.PopMem();
+        string buffcontents = Encoding.Unicode.GetString(buff);
+    }
+                
 
+                 
 }
 
 zeromq.majordomo.test.clientconsole is an application to test the zeromq.majordomo.csharp assembly

@@ -15,27 +15,81 @@ namespace zeromq.majordomo.csharp
         [DllImport("mdpwrapper.dll", CharSet=CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, EntryPoint = "#7")]
         static extern void _client_send_string(IntPtr handle, String service, String message );
         [DllImport("mdpwrapper.dll",  CallingConvention = CallingConvention.Cdecl, EntryPoint = "#4")]
-        static extern void _client_recv(IntPtr handle, IntPtr service, IntPtr message );
+        static extern IntPtr _client_recv(IntPtr handle, IntPtr service );
         [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#8")]
         static extern void _client_set_timeout(IntPtr handle, int timeout);
-        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#10")]
+        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#12")]
         static extern IntPtr _msg_new();
-        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#11")]
+        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#14")]
         static extern int _push_mem(IntPtr msg_handle, byte[] buffer, int length );
         [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#5")]
         static extern void _client_send( IntPtr handle, String service, out IntPtr msg_handle );
+        [DllImport("mdpwrapper.dll", CharSet=CharSet.Ansi, CallingConvention = CallingConvention.Cdecl, EntryPoint = "#15")]
+        static extern int _push_str(IntPtr msg_handle, String buffer);
+        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#13")]
+        static extern int _pop_mem(IntPtr msg_handle, IntPtr buffer );
+        [DllImport("mdpwrapper.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "#11")]
+        static extern void _msg_destroy(out IntPtr msg_handle);
 
-        internal static void client_send(Request request)
+        internal static void msg_destroy(IntPtr msg_handle)
         {
-            // todo implement me
+            _msg_destroy(out msg_handle);
         }
 
+        internal static byte[] pop_mem(IntPtr msg_handle)
+        {
+            byte[] response = null;
+            IntPtr ptrptr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(IntPtr)));
+            int size = _pop_mem(msg_handle, ptrptr);
+            IntPtr buffptr = (IntPtr)Marshal.PtrToStructure(ptrptr, typeof(IntPtr));
+            if (size > 0)
+            {
+                response = new byte[size];
+                Marshal.Copy(buffptr, response, 0, size);
+            }
+            Marshal.FreeHGlobal(ptrptr);
+            return response;
+
+        }
+
+        internal static String pop_str(IntPtr msg_handle)
+        {
+            string response = null;
+            byte[] buff = pop_mem(msg_handle);
+            if (buff != null)
+            {
+                response = System.Text.ASCIIEncoding.ASCII.GetString(buff);
+
+            }
+            return response;
+                
+        }
+
+        internal static void client_send(IntPtr handle, String service, IntPtr msg_handle )
+        {           
+            _client_send(handle, service, out msg_handle);
+        }
+
+        internal static void push_str(IntPtr msg_handle, String buffer)
+        {
+            int rc = _push_str(msg_handle, buffer);
+            if (rc != 0)
+            {
+                throw new System.Exception("Attempt to push string onto message failed.");
+            }
+
+        }
 
         internal static void push_mem(IntPtr msg_handle, byte[] buffer)
         {
             int rc = _push_mem(msg_handle, buffer, buffer.Length);
+            if (rc != 0)
+            {
+                throw new System.Exception("Attempt to add buffer to message failed");
+            }
 
         }
+
 
         internal static IntPtr msg_new()
         {
@@ -62,21 +116,20 @@ namespace zeromq.majordomo.csharp
             _client_send_string(handle, service, message);
         }
 
-        internal static void client_recv(IntPtr handle, ref string service, ref string message)
+        
+        internal static Response client_recv(IntPtr handle )
         {
+           string service = string.Empty;
            IntPtr ppservice = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(IntPtr)));
-           IntPtr ppmessage = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(IntPtr))); 
-
-            _client_recv(handle, ppservice, ppmessage);
-            IntPtr pmessage = (IntPtr)Marshal.PtrToStructure(ppmessage, typeof(IntPtr));
-            message = Marshal.PtrToStringAnsi(pmessage);
-            IntPtr pservice = (IntPtr)Marshal.PtrToStructure(ppservice, typeof(IntPtr));
+           IntPtr msg_handle = _client_recv(handle, ppservice);
+           IntPtr pservice = (IntPtr)Marshal.PtrToStructure(ppservice, typeof(IntPtr));
+           
             if (pservice != IntPtr.Zero)
             {
                 service = Marshal.PtrToStringAnsi(pservice);
             }
             Marshal.FreeHGlobal(ppservice);
-            Marshal.FreeHGlobal(ppmessage);
+            return new Response( msg_handle, service );
 
 
         }
@@ -98,34 +151,32 @@ namespace zeromq.majordomo.csharp
             handle = Wrapper.client_new(broker, verbose ? 1 : 0);
         }
 
+        public Request CreateRequest(String service)
+        {
+            Request request = new Request(handle, service);
+            return request;
+        }
+
         /*
          * Send a message to worker identified by service argument
          * 
          * ex. c.Send( "echo", "I like cheese" );
+         * 
+         * Extended send functionality is provided in the Request object. 
          */
         public void Send( String service, String message )
         {
             Wrapper.client_send_string( handle, service, message );
         }
 
-        public void Send(Request request)
-        {
-        }
 
         /*
-         * Handles response (if any from worker) response may be null
+         * Handles response (if any from worker) 
          */
         public Response Recv()
         {
-            Response response = null;
-            string service = string.Empty;
-            string message = string.Empty;
-            Wrapper.client_recv(handle, ref service, ref message);
-            if( !string.IsNullOrEmpty( message ) )
-            {
-                response = new Response(service, message);
-            }
-            return response;
+
+            return Wrapper.client_recv(handle);
         }
 
         public int Timeout
