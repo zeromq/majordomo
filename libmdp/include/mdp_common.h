@@ -33,11 +33,11 @@
 
 //  MDP/Client commands, as strings
 #define MDPC_REQUEST        "\001"
-#define MDPC_PARTIAL        "\002"
-#define MDPC_FINAL          "\003"
+#define MDPC_REPORT         "\002"
+#define MDPC_NAK            "\003"
 
 static char *mdpc_commands [] = {
-    NULL, "REQUEST", "PARTIAL", "FINAL",
+    NULL, "REQUEST", "REPORT", "NAK",
 };
 
 //  This is the version of MDP/Worker we implement
