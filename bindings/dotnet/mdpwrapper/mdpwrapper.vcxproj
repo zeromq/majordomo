@@ -64,22 +64,24 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\jam\code\zeromq3-x\include;C:\Users\jam\code\czmq\include;C:\Users\jam\code\majordomo\libmdp\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\jam\code\zeromq3-x\lib\Win32;C:\Users\jam\code\czmq\win32;C:\Users\jam\code\majordomo\builds\msvc\Release;C:\Users\jam\code\majordomo\builds\msvc\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)deps\czmq\include;$(SolutionDir)deps\zeromq\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(PlatformShortName)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\jam\code\zeromq3-x\include;C:\Users\jam\code\czmq\include;C:\Users\jam\code\majordomo\libmdp\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\jam\code\zeromq3-x\lib\Win32;C:\Users\jam\code\czmq\win32;C:\Users\jam\code\majordomo\builds\msvc\Release;C:\Users\jam\code\majordomo\builds\msvc\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)deps\zeromq\include;$(SolutionDir)deps\czmq\include;$(SolutionDir)..\..\libmdp\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(PlatformShortName)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\libmdp\include;$(SolutionDir)deps\zeromq\include;$(SolutionDir)deps\czmq\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -88,12 +90,17 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MDPWRAPPER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)deps\czmq\include;$(SolutionDir)\..\..\libmdp\include;$(SolutionDir)\deps\zeromq\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Ws2_32.lib;Rpcrt4.lib;libzmq.lib;czmq.lib;libmdp.lib</AdditionalDependencies>
+      <AdditionalDependencies>Ws2_32.lib;Rpcrt4.lib;$(SolutionDir)deps\Win32\zeromq\lib\libzmq.lib;$(SolutionDir)deps\Win32\czmq\lib\czmq.lib;$(SolutionDir)deps\Win32\libmdp\lib\libmdp.lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)deps\Win32\zeromq\bin\libzmq.dll $(SolutionDir)$(PlatformShortName)\$(ConfigurationName)\.
+copy $(SolutionDir)deps\Win32\libmdp\bin\libmdp.dll $(SolutionDir)$(PlatformShortName)\$(ConfigurationName)\.</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -108,9 +115,9 @@
       <AdditionalDependencies>Ws2_32.lib;Rpcrt4.lib;$(SolutionDir)deps\x64\zeromq\lib\libzmq.lib;$(SolutionDir)deps\x64\czmq\lib\czmq.lib;$(SolutionDir)deps\x64\libmdp\lib\libmdp.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)deps\x64\zeromq\bin\libzmq.dll $(SolutionDir)$(ConfigurationName)\.
-copy $(SolutionDir)deps\x64\libmdp\bin\libmdp.dll $(SolutionDir)$(ConfigurationName)\.
-copy $(TargetPath) $(SolutionDir)$(ConfigurationName)\.</Command>
+      <Command>copy $(SolutionDir)deps\x64\zeromq\bin\libzmq.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
+copy $(SolutionDir)deps\x64\libmdp\bin\libmdp.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -131,8 +138,8 @@ copy $(TargetPath) $(SolutionDir)$(ConfigurationName)\.</Command>
       <AdditionalDependencies>Ws2_32.lib;Rpcrt4.lib;$(SolutionDir)deps\Win32\zeromq\lib\libzmq.lib;$(SolutionDir)deps\Win32\czmq\lib\czmq.lib;$(SolutionDir)deps\Win32\libmdp\lib\libmdp.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)deps\Win32\zeromq\bin\libzmq.dll $(SolutionDir)$(ConfigurationName)\.
-copy $(SolutionDir)deps\Win32\libmdp\bin\libmdp.dll $(SolutionDir)$(ConfigurationName)\.</Command>
+      <Command>copy $(SolutionDir)deps\Win32\zeromq\bin\libzmq.dll $(SolutionDir)$(PlatformShortName)\$(ConfigurationName)\.
+copy $(SolutionDir)deps\Win32\libmdp\bin\libmdp.dll $(SolutionDir)$(PlatformShortName)\$(ConfigurationName)\.</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -153,9 +160,9 @@ copy $(SolutionDir)deps\Win32\libmdp\bin\libmdp.dll $(SolutionDir)$(Configuratio
       <AdditionalDependencies>Ws2_32.lib;Rpcrt4.lib;$(SolutionDir)deps\x64\zeromq\lib\libzmq.lib;$(SolutionDir)deps\x64\czmq\lib\czmq.lib;$(SolutionDir)deps\x64\libmdp\lib\libmdp.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)deps\x64\zeromq\bin\libzmq.dll $(SolutionDir)$(ConfigurationName)\.
-copy $(SolutionDir)deps\x64\libmdp\bin\libmdp.dll $(SolutionDir)$(ConfigurationName)\.
-copy $(TargetPath) $(SolutionDir)$(ConfigurationName)\.</Command>
+      <Command>copy $(SolutionDir)deps\x64\zeromq\bin\libzmq.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
+copy $(SolutionDir)deps\x64\libmdp\bin\libmdp.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

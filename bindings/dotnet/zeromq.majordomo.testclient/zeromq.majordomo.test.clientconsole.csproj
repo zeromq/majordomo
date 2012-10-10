@@ -34,7 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -79,9 +79,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(SolutionDir)$(ConfigurationName)\libmdp.dll $(TargetDir).
-copy $(SolutionDir)$(ConfigurationName)\libzmq.dll $(TargetDir).
-copy $(SolutionDir)$(ConfigurationName)\mdpwrapper.dll $(TargetDir).
+    <PostBuildEvent>copy $(SolutionDir)$(PlatformName)\$(ConfigurationName)\libmdp.dll $(TargetDir).
+copy $(SolutionDir)$(PlatformName)\$(ConfigurationName)\libzmq.dll $(TargetDir).
+copy $(SolutionDir)$(PlatformName)\$(ConfigurationName)\mdpwrapper.dll $(TargetDir).
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
