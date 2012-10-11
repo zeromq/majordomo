@@ -115,7 +115,7 @@ copy $(SolutionDir)deps\Win32\libmdp\bin\libmdp.dll $(SolutionDir)$(PlatformShor
       <AdditionalDependencies>Ws2_32.lib;Rpcrt4.lib;$(SolutionDir)deps\x64\zeromq\lib\libzmq.lib;$(SolutionDir)deps\x64\czmq\lib\czmq.lib;$(SolutionDir)deps\x64\libmdp\lib\libmdp.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)deps\x64\zeromq\bin\libzmq.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
+      <Command>copy $(SolutionDir)deps\x64\zeromq\bin\libzmq-v100-mt.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
 copy $(SolutionDir)deps\x64\libmdp\bin\libmdp.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
 </Command>
     </PostBuildEvent>
@@ -160,7 +160,7 @@ copy $(SolutionDir)deps\Win32\libmdp\bin\libmdp.dll $(SolutionDir)$(PlatformShor
       <AdditionalDependencies>Ws2_32.lib;Rpcrt4.lib;$(SolutionDir)deps\x64\zeromq\lib\libzmq.lib;$(SolutionDir)deps\x64\czmq\lib\czmq.lib;$(SolutionDir)deps\x64\libmdp\lib\libmdp.lib</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)deps\x64\zeromq\bin\libzmq.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
+      <Command>copy $(SolutionDir)deps\x64\zeromq\bin\libzmq-v100-mt.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
 copy $(SolutionDir)deps\x64\libmdp\bin\libmdp.dll $(SolutionDir)$(PlatformName)\$(ConfigurationName)\.
 </Command>
     </PostBuildEvent>

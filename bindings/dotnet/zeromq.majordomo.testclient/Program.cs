@@ -58,7 +58,7 @@ namespace zeromq.majordomo.testclient
 
                     }
                     else
-                    {
+                    { 
                         Console.WriteLine("push/pull string test passed.");
                     }
                 }

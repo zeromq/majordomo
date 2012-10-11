@@ -78,7 +78,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>C:\Users\jam\code\czmq\win32;C:\Users\jam\code\zeromq3-x\lib\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Users\jam\code\fresh\majordomo\bindings\dotnet\deps\x64\czmq\lib;C:\Users\jam\code\zeromq3-x\builds\lib\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jam\code\fresh\majordomo\bindings\dotnet\deps\czmq\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

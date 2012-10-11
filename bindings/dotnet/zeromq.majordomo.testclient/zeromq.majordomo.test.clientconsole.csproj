@@ -80,7 +80,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy $(SolutionDir)$(PlatformName)\$(ConfigurationName)\libmdp.dll $(TargetDir).
-copy $(SolutionDir)$(PlatformName)\$(ConfigurationName)\libzmq.dll $(TargetDir).
+copy $(SolutionDir)$(PlatformName)\$(ConfigurationName)\libzmq-v100-mt.dll $(TargetDir).
 copy $(SolutionDir)$(PlatformName)\$(ConfigurationName)\mdpwrapper.dll $(TargetDir).
 </PostBuildEvent>
   </PropertyGroup>
