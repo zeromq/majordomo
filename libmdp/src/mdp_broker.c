@@ -205,8 +205,15 @@ s_broker_worker_msg (broker_t *self, zframe_t *sender, zmsg_t *msg)
     }
     else
     if (zframe_streq (command, MDPW_HEARTBEAT)) {
-        if (worker_ready)
+        if (worker_ready) {
+        	if (zlist_size (self->waiting) > 1) {
+				// Move worker to the end of the waiting queue,
+        		// so s_broker_purge will only check old worker(s)
+				zlist_remove (self->waiting, worker);
+				zlist_append (self->waiting, worker);
+        	}
             worker->expiry = zclock_time () + HEARTBEAT_EXPIRY;
+        }
         else
             s_worker_delete (worker, 1);
     }
