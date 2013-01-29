@@ -1,6 +1,7 @@
-A Free-as-in-movement Implementation of MDP/0.2
+A Free-as-in-movement
 
-See http://rfc.zeromq.org/spec:18.
+State of the art implementation of the Majordomo protocol. The current
+implementation on the `master` branch is work in progress.
 
 Goals:
 
