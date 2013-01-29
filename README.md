@@ -1,6 +1,14 @@
-A Free-as-in-movement Implementation of MDP/0.2
+A Free-as-in-movement
 
-See http://rfc.zeromq.org/spec:18.
+State of the art implementation of the Majordomo protocol. The current
+implementation on the `master` branch is work in progress.
+
+Reference implementations of older wire protocols:
+
+* [MDP/0.1](http://rfc.zeromq.org/spec:7), see the git tag
+  [wire-protocol-0.1](https://github.com/zeromq/majordomo/tree/wire-protocol-0.1).
+* [MDP/0.2](http://rfc.zeromq.org/spec:18), see the git tag
+  [wire-protocol-0.2](https://github.com/zeromq/majordomo/tree/wire-protocol-0.2).
 
 Goals:
 
