@@ -89,7 +89,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <zmq.h>],
 
 # libczmq integration
 AC_ARG_WITH([libczmq],
-            [AS_HELP_STRING([--with-czmq],
+            [AS_HELP_STRING([--with-libczmq],
                             [Specify libczmq prefix])],
             [mdp_search_libczmq="yes"],
             [])
@@ -110,7 +110,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <czmq.h>],
                                 [zctx_test (0);])
                ],
                [AC_MSG_RESULT([yes])],
-               [AC_MSG_ERROR([no. Please specify libczmq installation prefix using --with-czmq])])
+               [AC_MSG_ERROR([no. Please specify libczmq installation prefix using --with-libczmq])])
 
 #Whether we are on mingw or not.
 mdp_on_mingw32="no"
