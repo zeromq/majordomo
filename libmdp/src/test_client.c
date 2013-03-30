@@ -14,7 +14,7 @@ int main (int argc, char *argv [])
         zmsg_t *request = zmsg_new ();
         zmsg_pushstr (request, "Hello world");
         mdp_client_send (session, "echo", &request);
-        zmsg_t *reply = mdp_client_recv (session, NULL);
+        zmsg_t *reply = mdp_client_recv (session, NULL, NULL);
         if (reply)
             zmsg_destroy (&reply);
         else
