@@ -37,14 +37,17 @@ int main (int argc, char *argv [])
         assert (zmsg_size (report) >= 2);
         zframe_t *report_type = zmsg_pop (report);
         char *report_type_str = zframe_strdup (report_type);
+        zframe_destroy (&report_type);
         zframe_t *volume = zmsg_pop (report);
         char *volume_str = zframe_strdup (volume);
+        zframe_destroy (&volume);
 
         printf ("%s: %s %s shares\n", service, report_type_str, volume_str);
 
         free (service);
         free (report_type_str);
         free (volume_str);
+        zmsg_destroy (&report);
     }
 
     mdp_client_destroy (&client);
