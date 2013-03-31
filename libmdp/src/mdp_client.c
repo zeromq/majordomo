@@ -153,7 +153,7 @@ mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p)
 //  to service string. It is caller's responsibility to free it.
 
 zmsg_t *
-mdp_client_recv (mdp_client_t *self, char **service_p)
+mdp_client_recv (mdp_client_t *self, char **command_p, char **service_p)
 {
     assert (self);
 
@@ -184,6 +184,13 @@ mdp_client_recv (mdp_client_t *self, char **service_p)
     zframe_t *header = zmsg_pop (msg);
     assert (zframe_streq (header, MDPC_CLIENT));
     zframe_destroy (&header);
+
+    zframe_t *command = zmsg_pop (msg);
+    assert (zframe_streq (command, MDPC_REPORT) ||
+            zframe_streq (command, MDPC_NAK));
+    if (command_p)
+        *command_p = zframe_strdup (command);
+    zframe_destroy (&command);
 
     zframe_t *service = zmsg_pop (msg);
     if (service_p)

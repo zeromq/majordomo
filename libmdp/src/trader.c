@@ -30,8 +30,9 @@ int main (int argc, char *argv [])
 
     //  Wait for all trading reports
     while (1) {
+        char *command = NULL;
         char *service = NULL;
-        zmsg_t *report = mdp_client_recv (client, &service);
+        zmsg_t *report = mdp_client_recv (client, &command, &service);
         if (report == NULL)
             break;
         assert (zmsg_size (report) >= 2);
@@ -44,6 +45,7 @@ int main (int argc, char *argv [])
 
         printf ("%s: %s %s shares\n", service, report_type_str, volume_str);
 
+        free (command);
         free (service);
         free (report_type_str);
         free (volume_str);

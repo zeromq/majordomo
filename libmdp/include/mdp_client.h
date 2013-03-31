@@ -49,7 +49,7 @@ CZMQ_EXPORT int
 CZMQ_EXPORT void
     mdp_client_send (mdp_client_t *self, char *service, zmsg_t **request_p);
 CZMQ_EXPORT zmsg_t *
-    mdp_client_recv (mdp_client_t *self, char **service_p);
+    mdp_client_recv (mdp_client_t *self, char **command_p, char **service_p);
 
 //  @end
 
