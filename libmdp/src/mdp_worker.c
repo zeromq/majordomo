@@ -198,7 +198,7 @@ mdp_worker_getsockopt (mdp_worker_t *self, 	int option, void *optval, size_t *op
 zmsg_t *
 mdp_worker_recv (mdp_worker_t *self, zframe_t **reply_to_p)
 {
-    while (TRUE) {
+    while (true) {
         zmq_pollitem_t items [] = {
             { self->worker,  0, ZMQ_POLLIN, 0 } };
         int rc = zmq_poll (items, 1, self->heartbeat * ZMQ_POLL_MSEC);
