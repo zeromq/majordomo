@@ -1,2 +1,2 @@
-script: ./autogen.sh && ./configure && make && make check
+script: cd libmdp && ./autogen.sh && ./configure && make && make check
 language: c
