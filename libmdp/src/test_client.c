@@ -18,9 +18,9 @@ int main (int argc, char *argv [])
         if (reply)
             zmsg_destroy (&reply);
         else
-            break;              //  Interrupt or failure
+            break;              //  Interrupted by Ctrl-C
     }
-    printf ("%d requests/replies processed\n", count);
+    printf ("%d replies received\n", count);
     mdp_client_destroy (&session);
     return 0;
 }
