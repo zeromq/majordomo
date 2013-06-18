@@ -29,6 +29,7 @@
 //  A minimal C implementation of the Majordomo Protocol as defined in
 //  http://rfc.zeromq.org/spec:7 and http://rfc.zeromq.org/spec:8.
 //
+#include <unistd.h>
 #include "../include/mdp_common.h"
 
 //  We'd normally pull these from config data
@@ -539,10 +540,37 @@ s_worker_send (worker_t *self, char *command, char *option, zmsg_t *msg)
 
 int main (int argc, char *argv [])
 {
-    int verbose = (argc > 1 && streq (argv [1], "-v"));
+    int verbose = 0;
+    int daemonize = 0;
+    for (int i = 1; i < argc; i++)
+    {
+        if (streq(argv[i], "-v")) verbose = 1;
+        else if (streq(argv[i], "-d")) daemonize = 1;
+        else if (streq(argv[i], "-h"))
+        {
+            printf("%s [-h] | [-d] [-v] [broker url]\n\t-h This help message\n\t-d Daemon mode.\n\t-v Verbose output\n\tbroker url defaults to tcp://*:5555\n", argv[0]);
+            return -1;
+        }
+    }
+
+    if (daemonize != 0)
+    {
+        daemon(0, 0);
+    }
 
     broker_t *self = s_broker_new (verbose);
-    s_broker_bind (self, "tcp://*:5555");
+    /* did the user specify a bind address? */
+    if (argc > 1)
+    {
+        s_broker_bind (self, argv[argc-1]);
+        printf("Bound to %s\n", argv[argc-1]);
+    }
+    else
+    {
+        /* default */
+        s_broker_bind (self, "tcp://*:5555");
+        printf("Bound to tcp://*:5555\n");
+    }
 
     //  Get and process messages forever or until interrupted
     while (true) {
