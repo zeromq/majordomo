@@ -1,7 +1,8 @@
-A Free-as-in-movement
+A service oriented broker that implements the Majordomo protocol.
 
-State of the art implementation of the Majordomo protocol. The current
-implementation on the `master` branch is work in progress.
+This broker connects a set of clients to a set of workers who register particular "services". 
+Client requests are then sent to workers according to their availability, and replies sent
+back to the original clients.
 
 Reference implementations of older wire protocols:
 
