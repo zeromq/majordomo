@@ -555,7 +555,8 @@ int main (int argc, char *argv [])
 
     if (daemonize != 0)
     {
-        daemon(0, 0);
+	int rc = daemon(0, 0);
+	assert (rc == 0);
     }
 
     broker_t *self = s_broker_new (verbose);
