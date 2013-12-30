@@ -133,6 +133,9 @@ mdp_worker_destroy (mdp_worker_t **self_p)
     assert (self_p);
     if (*self_p) {
         mdp_worker_t *self = *self_p;
+
+        s_mdp_worker_send_to_broker (self, MDPW_DISCONNECT, NULL, NULL);
+
         zctx_destroy (&self->ctx);
         free (self->broker);
         free (self->service);
