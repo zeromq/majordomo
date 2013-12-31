@@ -119,6 +119,11 @@ mdp_worker_new (char *broker,char *service, int verbose)
     self->heartbeat = 2500;     //  msecs
     self->reconnect = 2500;     //  msecs
 
+    // A non-zero linger value is required for DISCONNECT to be sent
+    // when the worker is destroyed.  100 is arbitrary but chosen to be
+    // sufficient for common cases without significant delay in broken ones.
+    zctx_set_linger (self->ctx, 100);
+
     s_mdp_worker_connect_to_broker (self);
     return self;
 }
@@ -133,6 +138,9 @@ mdp_worker_destroy (mdp_worker_t **self_p)
     assert (self_p);
     if (*self_p) {
         mdp_worker_t *self = *self_p;
+
+        s_mdp_worker_send_to_broker (self, MDPW_DISCONNECT, NULL, NULL);
+
         zctx_destroy (&self->ctx);
         free (self->broker);
         free (self->service);
@@ -152,6 +160,16 @@ void
 mdp_worker_set_heartbeat (mdp_worker_t *self, int heartbeat)
 {
     self->heartbeat = heartbeat;
+}
+
+
+//  ---------------------------------------------------------------------
+//  Set linger time
+
+void
+mdp_worker_set_linger (mdp_worker_t *self, int linger)
+{
+    zctx_set_linger (self->ctx, linger);
 }
 
 
