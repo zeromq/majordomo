@@ -542,6 +542,7 @@ int main (int argc, char *argv [])
 {
     int verbose = 0;
     int daemonize = 0;
+    int user_endpoint = 0;
     for (int i = 1; i < argc; i++)
     {
         if (streq(argv[i], "-v")) verbose = 1;
@@ -551,6 +552,7 @@ int main (int argc, char *argv [])
             printf("%s [-h] | [-d] [-v] [broker url]\n\t-h This help message\n\t-d Daemon mode.\n\t-v Verbose output\n\tbroker url defaults to tcp://*:5555\n", argv[0]);
             return -1;
         }
+        else user_endpoint = 1;
     }
 
     if (daemonize != 0)
@@ -561,7 +563,7 @@ int main (int argc, char *argv [])
 
     broker_t *self = s_broker_new (verbose);
     /* did the user specify a bind address? */
-    if (argc > 1)
+    if (user_endpoint == 1)
     {
         s_broker_bind (self, argv[argc-1]);
         printf("Bound to %s\n", argv[argc-1]);
