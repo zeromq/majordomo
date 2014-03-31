@@ -37,6 +37,7 @@
 
 struct _mdp_worker_t {
     zctx_t *ctx;                //  Our context
+    bool local_ctx;             //  Indicates if the Context belongs to us
     char *broker;
     char *service;
     void *worker;               //  Socket to broker
@@ -106,13 +107,22 @@ void s_mdp_worker_connect_to_broker (mdp_worker_t *self)
 //  Constructor
 
 mdp_worker_t *
-mdp_worker_new (char *broker,char *service, int verbose)
+mdp_worker_new (zctx_t *ctx, char *broker,char *service, int verbose)
 {
     assert (broker);
     assert (service);
 
     mdp_worker_t *self = (mdp_worker_t *) zmalloc (sizeof (mdp_worker_t));
-    self->ctx = zctx_new ();
+
+    if (ctx) {
+        self->ctx = ctx;
+        self->local_ctx = false;
+    }
+    else {
+        self->ctx = zctx_new ();
+        self->local_ctx = true;
+    }
+
     self->broker = strdup (broker);
     self->service = strdup (service);
     self->verbose = verbose;
@@ -122,7 +132,9 @@ mdp_worker_new (char *broker,char *service, int verbose)
     // A non-zero linger value is required for DISCONNECT to be sent
     // when the worker is destroyed.  100 is arbitrary but chosen to be
     // sufficient for common cases without significant delay in broken ones.
-    zctx_set_linger (self->ctx, 100);
+    if (self->local_ctx) {
+        zctx_set_linger (self->ctx, 100);
+    }
 
     s_mdp_worker_connect_to_broker (self);
     return self;
@@ -141,7 +153,10 @@ mdp_worker_destroy (mdp_worker_t **self_p)
 
         s_mdp_worker_send_to_broker (self, MDPW_DISCONNECT, NULL, NULL);
 
-        zctx_destroy (&self->ctx);
+        if (self->local_ctx) {
+            zctx_destroy (&self->ctx);
+        }
+
         free (self->broker);
         free (self->service);
         free (self);
@@ -169,7 +184,9 @@ mdp_worker_set_heartbeat (mdp_worker_t *self, int heartbeat)
 void
 mdp_worker_set_linger (mdp_worker_t *self, int linger)
 {
-    zctx_set_linger (self->ctx, linger);
+    if (self->local_ctx) {
+        zctx_set_linger (self->ctx, linger);
+    }
 }
 
 

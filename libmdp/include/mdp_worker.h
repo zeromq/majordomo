@@ -35,7 +35,7 @@ typedef struct _mdp_worker_t mdp_worker_t;
 
 //  @interface
 CZMQ_EXPORT mdp_worker_t *
-    mdp_worker_new (char *broker,char *service, int verbose);
+    mdp_worker_new (zctx_t *ctx, char *broker,char *service, int verbose);
 CZMQ_EXPORT void
     mdp_worker_destroy (mdp_worker_t **self_p);
 CZMQ_EXPORT void
