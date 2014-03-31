@@ -52,7 +52,7 @@ s_order_update (order_t *self, int volume)
 
     //  Prepare and send report to the client
     zmsg_t *report = zmsg_new ();
-    zmsg_pushstr (report, "%d", volume);
+    zmsg_pushstrf (report, "%d", volume);
 
     if (self->volume == 0)
         zmsg_pushstr (report, "FILL");
