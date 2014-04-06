@@ -15,7 +15,7 @@ int main (int argc, char *argv [])
     for (count = 0; count < 5; count++) {
         zmsg_t *request = zmsg_new ();
         zmsg_pushstr (request, "8");                // volume
-        zmsg_pushstr (request, "%d", count + 1000); // price
+        zmsg_pushstrf (request, "%d", count + 1000); // price
         zmsg_pushstr (request, "SELL");
         mdp_client_send (client, "NYSE", &request);
     }
