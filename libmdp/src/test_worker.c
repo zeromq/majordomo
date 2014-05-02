@@ -7,7 +7,7 @@ int main (int argc, char *argv [])
 {
     int verbose = (argc > 1 && streq (argv [1], "-v"));
     mdp_worker_t *session = mdp_worker_new (
-        "tcp://localhost:5555", "echo", verbose);
+        NULL, "tcp://localhost:5555", "echo", verbose);
 
     while (1) {
         zframe_t *reply_to;
