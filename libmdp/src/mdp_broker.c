@@ -151,7 +151,7 @@ s_broker_destroy (broker_t **self_p)
 void
 s_broker_bind (broker_t *self, char *endpoint)
 {
-    zsocket_bind (self->socket, endpoint);
+    zsocket_bind (self->socket, "%s", endpoint);
     zclock_log ("I: MDP broker/0.2.0 is active at %s", endpoint);
 }
 
