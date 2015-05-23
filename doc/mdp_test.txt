@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+mdp_test - Simple test of the implementation of Majordomo protocol
+
+
+SYNOPSIS
+--------
+----
+#include <majordomo.h>
+
+cc ['flags'] 'files' -lmajordomo ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.

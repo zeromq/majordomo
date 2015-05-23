@@ -1,0 +1,132 @@
+<class
+    name = "mdp_worker"
+    title = "Majordomo Worker"
+    script = "zproto_client_c"
+    protocol_class = "mdp_worker_msg"
+    package_dir = "../include"
+    source_dir = "."
+    >
+
+    This is the Majordomo/Worker Protocol 0.2 client protocol handler
+    
+    <!-- As laid out by zproject, the license is in the main dir -->
+    <include filename = "../license.xml" />
+    
+    <!-- State machine for a client connection -->
+    
+    Names of states, events, and actions are case insensitive.
+    By convention, however, we use uppercase for protocol events.
+
+    <state name = "start" inherit = "defaults">
+        Start up the worker and connect to the broker.
+        <event name = "constructor" next = "connected">
+            <action name = "connect to server" />
+            <action name = "prepare ready message" />
+            <action name = "send" message = "READY" />
+            <action name = "handle set wakeup" />
+            <action name = "signal connection success" />
+        </event>
+        <event name = "connect error">
+            The dealer socket was not successfully connected to the server.
+            This could be due to a bad endpoint.
+            <action name = "handle connect error" />
+        </event>
+    </state>
+
+    <state name = "connected" inherit = "defaults">
+        Waiting for a request from the broker.
+        <event name = "WORKER REQUEST" next = "wait for response">
+            Signal a request to the application and wait for response(s).
+            <action name = "signal request" />
+        </event>
+        
+        <event name = "send heartbeat">
+            <action name = "check timeouts" />
+            <action name = "send" message = "HEARTBEAT" />
+            <action name = "handle set wakeup" />
+        </event>
+        
+        <event name = "HEARTBEAT">
+            <action name = "reset timeouts" />
+            <action name = "handle set wakeup" />
+        </event>
+        
+    </state>
+    
+    <state name = "wait for response" inherit = "defaults">
+        Waiting for a partial or final response.
+        <event name = "send partial">
+            <action name = "prepare partial response" />
+            <action name = "send" message = "WORKER PARTIAL" />
+        </event>
+        
+        <event name = "send final" next = "connected">
+            <action name = "prepare final response" />
+            <action name = "send" message = "WORKER FINAL" />
+            <action name = "handle set wakeup" />
+        </event>
+    </state>
+
+    <state name = "defaults">
+        <event name = "destructor">
+            <action name = "destroy worker" />
+        </event>
+        
+        <event name = "HEARTBEAT">
+            <action name = "received heartbeat" />
+        </event>
+        
+        <event name = "SET VERBOSE">
+            <action name = "handle set verbose" />
+        </event>
+
+        <event name = "*">
+            <action name = "log protocol error" />
+        </event>
+    </state>
+
+    <!-- API methods -->
+    
+    <method name = "constructor" return = "status">
+    Connect to server endpoint and register service. Succeed if connection is
+    successful.
+        <field name = "endpoint" type = "string" />
+        <field name = "service" type = "string" />
+        <accept reply = "SUCCESS" />
+        <accept reply = "FAILURE" />
+    </method>
+    
+    <method name = "destructor" return = "status">
+    Disconnect from server. TODO: check state and return SUCCESS or FAILURE.
+    </method>
+
+    <method name = "send partial">
+    Send WORKER PARTIAL.
+        <field name = "address" type = "frame" />
+        <field name = "reply body" type = "msg" />
+    </method>
+
+    <method name = "send final">
+    Send WORKER FINAL.
+        <field name = "address" type = "frame" />
+        <field name = "reply body" type = "msg" />
+    </method>
+    
+    <method name = "send heartbeat">
+    Send HEARTBEAT.
+    </method>
+
+    <method name = "set verbose">
+    Set mdp_worker_verbose.
+    </method>
+
+    <reply name = "SUCCESS">
+        <field name = "status" type = "number" size = "1" />
+    </reply>
+
+    <reply name = "FAILURE">
+        <field name = "status" type = "number" size = "1" />
+        <field name = "reason" type = "string" />
+    </reply>
+
+</class>

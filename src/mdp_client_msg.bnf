@@ -1,0 +1,37 @@
+The following ABNF grammar defines the Majordomo Client Protocol:
+
+    mdp_client_msg  = *( CLIENT-REQUEST | CLIENT-PARTIAL | CLIENT-FINAL )
+
+    ;  Client sends a request.                                               
+
+    CLIENT-REQUEST  = signature %d1 version messageid service body
+    signature       = %xAA %xA4             ; two octets
+    version         = string                ; MDP/Client v0.2
+    messageid       = number-1              ; REQUEST message id
+    service         = string                ; Service name
+    body            = msg                   ; Request body
+
+    ;  Broker sends a partial response from a worker.                        
+
+    CLIENT-PARTIAL  = signature %d2 version messageid service body
+    version         = string                ; MDP/Client v0.2
+    messageid       = number-1              ; PARTIAL message id
+    service         = string                ; Service name
+    body            = msg                   ; Reply body
+
+    ;  No description                                                        
+
+    CLIENT-FINAL    = signature %d3 version messageid service body
+    version         = string                ; MDP/Client v0.2
+    messageid       = number-1              ; PARTIAL message id
+    service         = string                ; Service name
+    body            = msg                   ; Reply body
+
+    ; A msg is zero or more distinct frames
+    msg             = *frame
+
+    ; Strings are always length + text contents
+    string          = number-1 *VCHAR
+
+    ; Numbers are unsigned integers in network byte order
+    number-1        = 1OCTET

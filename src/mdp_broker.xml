@@ -1,0 +1,80 @@
+<class
+    name = "mdp_broker"
+    title = "Majordomo Broker"
+    script = "zproto_server_c"
+    protocol_class = "mdp_msg"
+    package_dir = "../include"
+    source_dir = "."
+    >
+
+    Majordomo Broker
+    
+    <!-- As specified by zproject our license is in the main dir. -->
+    <include filename = "../license.xml" />
+
+    <state name = "start" inherit = "defaults">
+        <event name = "READY">
+            <action name = "reset timeouts" />
+            <action name = "handle ready" />
+            <action name = "handle set wakeup" />
+        </event>
+
+        <event name = "CLIENT REQUEST">
+            <action name = "handle request" />
+        </event>
+        
+        <event name = "WORKER PARTIAL">
+            <action name = "reset timeouts" />
+            <action name = "handle worker partial" />
+        </event>
+        
+        <event name = "WORKER FINAL">
+            <action name = "reset timeouts" />
+            <action name = "handle worker final" />
+            <action name = "handle set wakeup" />
+        </event>
+        
+        <event name = "send heartbeat">
+            <action name = "send" message = "HEARTBEAT" />
+            <action name = "check timeouts" />
+            <action name = "handle set wakeup" />
+        </event>
+        
+        <event name = "HEARTBEAT">
+            <action name = "reset timeouts" />
+            <action name = "handle set wakeup" />
+        </event>
+        
+        <event name = "DISCONNECT">
+            <action name = "delete worker" />
+        </event>
+    </state>
+
+    <state name = "defaults">
+        <event name = "destructor">
+            <action name = "destroy broker" />
+        </event>
+        
+        <event name = "*">
+            <action name = "terminate" />
+        </event>
+    </state>
+
+    <!-- API methods -->
+
+    <method name = "destructor" return = "status">
+    Destroy endpoint.
+        <action reply = "SUCCESS" />
+        <action reply = "FAILURE" />
+    </method>
+    
+    <reply name = "SUCCESS">
+        <field name = "status" type = "number" size = "1" />
+    </reply>
+    
+    <reply name = "FAILURE">
+        <field name = "status" type = "number" size = "1" />
+        <field name = "reason" type = "string" />
+    </reply>
+
+</class>

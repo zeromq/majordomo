@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+mdp_test - Simple Majordomo broker
+
+
+SYNOPSIS
+--------
+----
+#include <majordomo.h>
+
+cc ['flags'] 'files' -lmajordomo ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.

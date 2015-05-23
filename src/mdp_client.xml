@@ -1,0 +1,101 @@
+<class
+    name = "mdp_client"
+    title = "Majordomo Client"
+    script = "zproto_client_c"
+    protocol_class = "mdp_client_msg"
+    package_dir = "../include"
+    source_dir = "."
+    >
+
+    This is the Majordomo/Client Protocol 0.2 client protocol handler
+    
+    <!-- As laid out by zproject, the license is in the main dir -->
+    <include filename = "../license.xml" />
+    
+    <!-- State machine for a client connection -->
+    
+    Names of states, events, and actions are case insensitive.
+    By convention, however, we use uppercase for protocol events.
+    
+    <state name = "start" inherit = "defaults">
+        Start up the client and connect to the broker.
+        <event name = "constructor" next = "connected">
+            <action name = "connect to server" />
+            <action name = "signal connection success" />
+        </event>
+        <event name = "connect error">
+            The dealer socket was not successfully connected to the server.
+            This could be due to a bad endpoint.
+            <action name = "signal connect error" />
+            <action name = "terminate" />
+        </event>
+    </state>
+
+    <state name = "connected" inherit = "defaults">
+        <event name = "request" next = "wait for response">
+            <action name = "send request to broker" />
+        </event>
+        
+        <event name = "destructor">
+            API destructor. Disconnect from the broker.
+            <action name = "disconnect from broker" />
+        </event>
+    </state>
+    
+    <state name = "wait for response" inherit = "defaults">
+        We have sent a request to the broker. Wait for a sequence of
+        (0 or more) partial responses, ending with a final response.
+        <event name = "CLIENT PARTIAL">
+            Send partial response to the application.
+            <action name = "send partial response" />
+        </event>
+        
+        <event name = "CLIENT FINAL" next = "connected">
+            Send final response to the application.
+            <action name = "send final response" />
+        </event>
+    </state>
+    
+    <state name = "defaults">
+        <event name = "SET VERBOSE">
+            <action name = "handle set verbose" />
+        </event>
+        
+        <event name = "*">
+            <action name = "log protocol error" />
+        </event>
+    </state>
+
+    <!-- API methods -->
+    
+    <method name = "constructor" return = "status">
+    Connect to server endpoint. Succeed if connection is successful.
+        <field name = "endpoint" type = "string" />
+        <accept reply = "SUCCESS" />
+        <accept reply = "FAILURE" />
+    </method>
+
+    <method name = "destructor" return = "status">
+    Disconnect from server.
+    </method>
+
+    <method name = "request">
+    Send request to broker.
+        <field name = "service" type = "string" />
+        <field name = "body" type = "msg" />
+    </method>
+    
+    <method name = "set verbose">
+    Set mdp_client_verbose.
+    </method>
+
+    <reply name = "SUCCESS">
+        <field name = "status" type = "number" size = "1" />
+    </reply>
+    
+    <reply name = "FAILURE">
+        <field name = "status" type = "number" size = "1" />
+        <field name = "reason" type = "string" />
+    </reply>
+
+</class>

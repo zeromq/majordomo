@@ -1,0 +1,62 @@
+The following ABNF grammar defines the Majordomo Worker Protocol:
+
+    mdp_worker_msg  = *( READY | WORKER-REQUEST | WORKER-PARTIAL | WORKER-FINAL | HEARTBEAT | DISCONNECT )
+
+    ;  Worker signals the broker that it is ready to receive requests.       
+
+    READY           = signature %d4 version messageid service
+    signature       = %xAA %xA4             ; two octets
+    version         = string                ; MDP/Worker v0.2
+    messageid       = number-1              ; PARTIAL message id
+    service         = string                ; Service name
+
+    ;  Broker sends a request from a client.                                 
+
+    WORKER-REQUEST  = signature %d5 version messageid address empty body
+    version         = string                ; MDP/Worker v0.2
+    messageid       = number-1              ; PARTIAL message id
+    address         = frame                 ; Client address (envelope stack)
+    empty           = frame                 ; Empty frame
+    body            = msg                   ; Request body
+
+    ;  Worker sends a partial reply.                                         
+
+    WORKER-PARTIAL  = signature %d6 version messageid address empty body
+    version         = string                ; MDP/Worker v0.2
+    messageid       = number-1              ; PARTIAL message id
+    address         = frame                 ; Client address (envelope stack)
+    empty           = frame                 ; Empty frame
+    body            = msg                   ; Reply body
+
+    ;  Worker sends a final reply.                                           
+
+    WORKER-FINAL    = signature %d7 version messageid address empty body
+    version         = string                ; MDP/Worker v0.2
+    messageid       = number-1              ; FINAL message id
+    address         = frame                 ; Client address (envelope stack)
+    empty           = frame                 ; Empty frame
+    body            = msg                   ; Reply body
+
+    ;  Worker or broker sends an asynchronous heartbeat.                     
+
+    HEARTBEAT       = signature %d8 version messageid
+    version         = string                ; MDP/Worker v0.2
+    messageid       = number-1              ; HEARTBEAT message id
+
+    ;  Worker or broker sends an asynchronous disconnect.                    
+
+    DISCONNECT      = signature %d9 version messageid
+    version         = string                ; MDP/Worker v0.2
+    messageid       = number-1              ; DISCONNECT message id
+
+    ; A frame is zero or more octets encoded as a ZeroMQ frame
+    frame           = *OCTET
+
+    ; A msg is zero or more distinct frames
+    msg             = *frame
+
+    ; Strings are always length + text contents
+    string          = number-1 *VCHAR
+
+    ; Numbers are unsigned integers in network byte order
+    number-1        = 1OCTET
