@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+majordomo - Implementation of Majordomo protocol version 0.2.
+
+
+SYNOPSIS
+--------
+----
+#include <majordomo.h>
+
+cc ['flags'] 'files' -lmajordomo ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.

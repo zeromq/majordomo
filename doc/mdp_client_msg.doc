@@ -1,0 +1,135 @@
+#### mdp_client_msg - Majordomo Client Protocol
+
+mdp_client_msg - Majordomo Client Protocol
+
+Please add @discuss section in ../src/mdp_client_msg.c.
+
+This is the class interface:
+
+    //  Create a new empty mdp_client_msg
+    mdp_client_msg_t *
+        mdp_client_msg_new (void);
+    
+    //  Destroy a mdp_client_msg instance
+    void
+        mdp_client_msg_destroy (mdp_client_msg_t **self_p);
+    
+    //  Receive a mdp_client_msg from the socket. Returns 0 if OK, -1 if
+    //  there was an error. Blocks if there is no message waiting.
+    int
+        mdp_client_msg_recv (mdp_client_msg_t *self, zsock_t *input);
+    
+    //  Send the mdp_client_msg to the output socket, does not destroy it
+    int
+        mdp_client_msg_send (mdp_client_msg_t *self, zsock_t *output);
+        
+    //  Print contents of message to stdout
+    void
+        mdp_client_msg_print (mdp_client_msg_t *self);
+    
+    //  Get/set the message routing id
+    zframe_t *
+        mdp_client_msg_routing_id (mdp_client_msg_t *self);
+    void
+        mdp_client_msg_set_routing_id (mdp_client_msg_t *self, zframe_t *routing_id);
+    
+    //  Get the mdp_client_msg id and printable command
+    int
+        mdp_client_msg_id (mdp_client_msg_t *self);
+    void
+        mdp_client_msg_set_id (mdp_client_msg_t *self, int id);
+    const char *
+        mdp_client_msg_command (mdp_client_msg_t *self);
+    
+    //  Get/set the service field
+    const char *
+        mdp_client_msg_service (mdp_client_msg_t *self);
+    void
+        mdp_client_msg_set_service (mdp_client_msg_t *self, const char *value);
+    
+    //  Get a copy of the body field
+    zmsg_t *
+        mdp_client_msg_body (mdp_client_msg_t *self);
+    //  Get the body field and transfer ownership to caller
+    zmsg_t *
+        mdp_client_msg_get_body (mdp_client_msg_t *self);
+    //  Set the body field, transferring ownership from caller
+    void
+        mdp_client_msg_set_body (mdp_client_msg_t *self, zmsg_t **msg_p);
+    
+    //  Self test of this class
+    int
+        mdp_client_msg_test (bool verbose);
+
+This is the class self test code:
+
+    //  Simple create/destroy test
+    mdp_client_msg_t *self = mdp_client_msg_new ();
+    assert (self);
+    mdp_client_msg_destroy (&self);
+    
+    //  Create pair of sockets we can send through
+    zsock_t *input = zsock_new (ZMQ_ROUTER);
+    assert (input);
+    zsock_connect (input, "inproc://selftest-mdp_client_msg");
+    
+    zsock_t *output = zsock_new (ZMQ_DEALER);
+    assert (output);
+    zsock_bind (output, "inproc://selftest-mdp_client_msg");
+    
+    //  Encode/send/decode and verify each message type
+    int instance;
+    self = mdp_client_msg_new ();
+    mdp_client_msg_set_id (self, MDP_CLIENT_MSG_CLIENT_REQUEST);
+    
+    mdp_client_msg_set_service (self, "Life is short but Now lasts for ever");
+    zmsg_t *client_request_body = zmsg_new ();
+    mdp_client_msg_set_body (self, &client_request_body);
+    zmsg_addstr (mdp_client_msg_body (self), "Hello, World");
+    //  Send twice
+    mdp_client_msg_send (self, output);
+    mdp_client_msg_send (self, output);
+    
+    for (instance = 0; instance < 2; instance++) {
+        mdp_client_msg_recv (self, input);
+        assert (mdp_client_msg_routing_id (self));
+        assert (streq (mdp_client_msg_service (self), "Life is short but Now lasts for ever"));
+        assert (zmsg_size (mdp_client_msg_body (self)) == 1);
+    }
+    mdp_client_msg_set_id (self, MDP_CLIENT_MSG_CLIENT_PARTIAL);
+    
+    mdp_client_msg_set_service (self, "Life is short but Now lasts for ever");
+    zmsg_t *client_partial_body = zmsg_new ();
+    mdp_client_msg_set_body (self, &client_partial_body);
+    zmsg_addstr (mdp_client_msg_body (self), "Hello, World");
+    //  Send twice
+    mdp_client_msg_send (self, output);
+    mdp_client_msg_send (self, output);
+    
+    for (instance = 0; instance < 2; instance++) {
+        mdp_client_msg_recv (self, input);
+        assert (mdp_client_msg_routing_id (self));
+        assert (streq (mdp_client_msg_service (self), "Life is short but Now lasts for ever"));
+        assert (zmsg_size (mdp_client_msg_body (self)) == 1);
+    }
+    mdp_client_msg_set_id (self, MDP_CLIENT_MSG_CLIENT_FINAL);
+    
+    mdp_client_msg_set_service (self, "Life is short but Now lasts for ever");
+    zmsg_t *client_final_body = zmsg_new ();
+    mdp_client_msg_set_body (self, &client_final_body);
+    zmsg_addstr (mdp_client_msg_body (self), "Hello, World");
+    //  Send twice
+    mdp_client_msg_send (self, output);
+    mdp_client_msg_send (self, output);
+    
+    for (instance = 0; instance < 2; instance++) {
+        mdp_client_msg_recv (self, input);
+        assert (mdp_client_msg_routing_id (self));
+        assert (streq (mdp_client_msg_service (self), "Life is short but Now lasts for ever"));
+        assert (zmsg_size (mdp_client_msg_body (self)) == 1);
+    }
+    
+    mdp_client_msg_destroy (&self);
+    zsock_destroy (&input);
+    zsock_destroy (&output);
+
