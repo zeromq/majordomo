@@ -167,14 +167,14 @@ s_service_require(server_t *self, const char *service_name)
 		service->waiting = zlist_new();
 		zhash_insert(self->services, name, service);
 		zhash_freefn(self->services, name, s_service_destroy);
-	}
+	} else
+	    zstr_free(&name);
 	return service;
 }
 
 static void
 s_service_dispatch(service_t *self)
 {
-    printf("s_service_dispatch\n");
     while ((zlist_size(self->requests) > 0) &&
            (zlist_size(self->waiting) > 0)) {
         worker_t *worker = (worker_t *) zlist_pop(self->waiting);
@@ -303,22 +303,60 @@ mdp_broker_test (bool verbose)
 //
 
 static void
+handle_mmi (client_t *self, const char *service_name) {
+
+    const char *result = "501";
+    zmsg_t *mmibody = mdp_msg_get_body(self->message);
+
+    if(mmibody) {
+
+        if(strstr(service_name, "mmi.service")) {
+            char *svc_lookup = zmsg_popstr(mmibody);
+            if(svc_lookup) {
+                service_t *service = (service_t *) zhash_lookup(self->server->services, svc_lookup);
+                result = service && service->workers ? "200" : "404";
+                zstr_free(&svc_lookup);
+            }
+        }
+
+        zmsg_destroy(&mmibody);
+    }
+
+    // Set routing id, messageid, service, body
+    mdp_msg_t *client_msg = mdp_msg_new();
+    mdp_msg_set_routing_id(client_msg, mdp_msg_routing_id(self->message));
+    mdp_msg_set_id(client_msg, MDP_MSG_CLIENT_FINAL);
+    mdp_msg_set_service(client_msg, service_name);
+    zmsg_t *rep_body = zmsg_new();
+    zmsg_pushstr(rep_body, result);
+    mdp_msg_set_body(client_msg, &rep_body);
+    mdp_msg_send(client_msg, self->server->router);
+}
+
+static void
 handle_request (client_t *self)
 {
-    // mdp_msg_t *msg = self->message;
-    // Create a fresh instance of mdp_msg_t to append to the list of
-    // requests.
+    const char *service_name = mdp_msg_service(self->message);
+
+    if(strstr(service_name, "mmi.")) {
+        handle_mmi(self, service_name);
+        return;
+    }
+
+    // Create a fresh instance of mdp_msg_t to append to the list of requests.
     mdp_msg_t *msg = mdp_msg_new();
+
     // routing id, messageid, service, body
     mdp_msg_set_routing_id(msg, mdp_msg_routing_id(self->message));
     mdp_msg_set_id(msg, mdp_msg_id(self->message));
-    mdp_msg_set_service(msg, mdp_msg_service(self->message));
+    mdp_msg_set_service(msg, service_name);
     zmsg_t *body = mdp_msg_get_body(self->message);
     mdp_msg_set_body(msg, &body);
-    const char *service_name = mdp_msg_service(msg);
-	service_t *service = s_service_require(self->server, service_name);
-	zlist_append(service->requests, msg);
-	s_service_dispatch(service);
+
+    service_t *service = s_service_require(self->server, service_name);
+    zlist_append(service->requests, msg);
+    s_service_dispatch(service);
+
 }
 
 
@@ -400,7 +438,7 @@ handle_ready (client_t *self)
 {
     mdp_msg_t *msg = self->message;
     const char *service_name = mdp_msg_service(msg);
-    zsys_debug("handle_ready: service=%s\n", service_name);
+    // zsys_debug("handle_ready: service=%s\n", service_name);
     zframe_t *routing_id = mdp_msg_routing_id(msg);
     assert(routing_id);
     char *identity = zframe_strhex(routing_id);
