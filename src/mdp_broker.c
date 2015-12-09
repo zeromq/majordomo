@@ -297,9 +297,8 @@ mdp_broker_test (bool verbose)
     printf ("OK\n");
 }
 
-
 //  ---------------------------------------------------------------------------
-//  handle_request
+//  handle_mmi
 //
 
 static void
@@ -331,7 +330,12 @@ handle_mmi (client_t *self, const char *service_name) {
     zmsg_pushstr(rep_body, result);
     mdp_msg_set_body(client_msg, &rep_body);
     mdp_msg_send(client_msg, self->server->router);
+    mdp_msg_destroy(&client_msg);
 }
+
+//  ---------------------------------------------------------------------------
+//  handle_request
+//
 
 static void
 handle_request (client_t *self)
@@ -414,6 +418,7 @@ handle_worker_final (client_t *self)
     assert(service);
     zlist_append(service->waiting, worker);
 
+    zstr_free(&identity);
     mdp_msg_destroy(&client_msg);
 }
 
