@@ -57,6 +57,7 @@ struct _client_t {
 
     //  TODO: Add specific properties for your application
     unsigned int timeouts;      // Number of timeouts
+    char *service_name;         // Service name called by client request
 };
 
 // The service class defines a single service instance.
@@ -87,7 +88,7 @@ typedef struct {
 #define MAX_TIMEOUTS 3
 
 // Interval for sending heartbeat [ms]
-#define HEARTBEAT_DELAY 1000
+#define HEARTBEAT_DELAY 20000
 
 static void s_service_destroy(void *argument);
 static void s_service_dispatch(service_t *self);
@@ -255,6 +256,14 @@ client_initialize (client_t *self)
 {
     //  Construct properties here
     self->timeouts = 0;
+    // Client init service
+    const char * msg_service = mdp_msg_service(self->message);
+    if(msg_service != NULL)
+    {
+        self->service_name = (char *) zmalloc ((strlen(msg_service)+1) * sizeof(char));
+        assert(self->service_name);
+        snprintf(self->service_name, strlen(msg_service)+1, "%s", msg_service);
+    }	
     return 0;
 }
 
@@ -264,6 +273,7 @@ static void
 client_terminate (client_t *self)
 {
     //  Destroy properties here
+    free(self->service_name);
 }
 
 //  ---------------------------------------------------------------------------
@@ -400,7 +410,7 @@ handle_worker_final (client_t *self)
 
     mdp_msg_set_routing_id(client_msg, address);
     mdp_msg_set_id(client_msg, MDP_MSG_CLIENT_FINAL);
-    const char *service_name = mdp_msg_service(msg);
+    const char *service_name = self->service_name;
     mdp_msg_set_service(client_msg, service_name);
     zmsg_t *body = mdp_msg_get_body(msg);
     mdp_msg_set_body(client_msg, &body);
