@@ -424,7 +424,7 @@ handle_worker_final (client_t *self)
     assert(worker);
     zlist_append(self->server->waiting, worker);
     service_t *service = (service_t *) zhash_lookup(self->server->services,
-        service_name);
+        worker->service->name);
     assert(service);
     zlist_append(service->waiting, worker);
 
