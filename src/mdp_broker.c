@@ -1,13 +1,14 @@
 /*  =========================================================================
     mdp_broker - mdp_broker
 
-    Copyright (c) the Contributors as noted in the AUTHORS file.       
-    This file is part of FileMQ, a C implemenation of the protocol:    
-    https://github.com/danriegsecker/filemq2.                          
+    Copyright (c) the Contributors as noted in the AUTHORS file.
+    This file is part of majordomo, a C implementation of Majordomo
+    Protocol:
+    https://github.com/ajanicij/majordomo.git
                                                                        
     This Source Code Form is subject to the terms of the Mozilla Public
     License, v. 2.0. If a copy of the MPL was not distributed with this
-    file, You can obtain one at http://mozilla.org/MPL/2.0/.           
+    file, You can obtain one at http://mozilla.org/MPL/2.0/.
     =========================================================================
 */
 
