@@ -15,6 +15,7 @@ src/.deps/
 src/.dirstamp
 src/.libs/
 src/*.la
+src/*.o
 src/mdp_test
 src/*.lo
 
