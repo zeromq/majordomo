@@ -76,7 +76,7 @@ s_engine_new (char *broker, char *service, int verbose)
     engine_t *self = (engine_t *) zmalloc (sizeof *self);
 
     //  Initialize engine state
-    self->worker = mdp_worker_new (NULL, broker, service, verbose);
+    self->worker = mdp_worker_new (broker, service, verbose);
     self->sell_orders = zlist_new ();
     self->buy_orders = zlist_new ();
     return self;

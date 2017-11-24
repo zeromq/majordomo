@@ -30,9 +30,8 @@
 //  We access these properties only via class methods
 
 struct _mdp_client_t {
-    zctx_t *ctx;                //  Our context
-    char *broker;
-    void *client;               //  Socket to broker
+    char *broker;               // "path_to_connect"
+    zsock_t *client;            //  Socket to broker
     int verbose;                //  Print activity to stdout
     int timeout;                //  Request timeout
 };
@@ -43,12 +42,14 @@ struct _mdp_client_t {
 
 void s_mdp_client_connect_to_broker (mdp_client_t *self)
 {
-    if (self->client)
-        zsocket_destroy (self->ctx, self->client);
-    self->client = zsocket_new (self->ctx, ZMQ_DEALER);
-    zmq_connect (self->client, self->broker);
+    if(self->client)
+        zsock_destroy (&self->client);
+    self->client = zsock_new (ZMQ_DEALER);
+    assert(0==zsock_connect (self->client, "%s", self->broker));
     if (self->verbose)
         zclock_log ("I: connecting to broker at %s...", self->broker);
+
+    zsock_set_rcvtimeo(self->client,self->timeout);
 }
 
 
@@ -61,7 +62,6 @@ mdp_client_new (char *broker, int verbose)
     assert (broker);
 
     mdp_client_t *self = (mdp_client_t *) zmalloc (sizeof (mdp_client_t));
-    self->ctx = zctx_new ();
     self->broker = strdup (broker);
     self->verbose = verbose;
     self->timeout = 2500;           //  msecs
@@ -80,7 +80,7 @@ mdp_client_destroy (mdp_client_t **self_p)
     assert (self_p);
     if (*self_p) {
         mdp_client_t *self = *self_p;
-        zctx_destroy (&self->ctx);
+        zsock_destroy (&self->client);
         free (self->broker);
         free (self);
         *self_p = NULL;
@@ -96,6 +96,7 @@ mdp_client_set_timeout (mdp_client_t *self, int timeout)
 {
     assert (self);
     self->timeout = timeout;
+    zsock_set_rcvtimeo(self->client,self->timeout);
 }
 
 
@@ -107,7 +108,7 @@ mdp_client_setsockopt (mdp_client_t *self, int option, const void *optval, size_
 {
     assert (self);
     assert (self->client);
-    return zmq_setsockopt (self->client, option, optval, optvallen);
+    return zmq_setsockopt (zsock_resolve(self->client), option, optval, optvallen);
 }
 
 
@@ -119,7 +120,7 @@ mdp_client_getsockopt (mdp_client_t *self, 	int option, void *optval, size_t *op
 {
     assert (self);
     assert (self->client);
-    return zmq_getsockopt (self->client, option, optval, optvallen);
+    return zmq_getsockopt (zsock_resolve(self->client), option, optval, optvallen);
 }
 
 
