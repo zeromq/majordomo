@@ -36,11 +36,9 @@
 //  We access these properties only via class methods
 
 struct _mdp_worker_t {
-    zctx_t *ctx;                //  Our context
-    bool local_ctx;             //  Indicates if the Context belongs to us
-    char *broker;
+    char *broker;               //  "path_to_connect"
     char *service;
-    void *worker;               //  Socket to broker
+    zsock_t *worker;            //  Socket to broker
     int verbose;                //  Print activity to stdout
 
     //  Heartbeat management
@@ -76,7 +74,7 @@ s_mdp_worker_send_to_broker (mdp_worker_t *self, char *command, char *option,
             mdpw_commands [(int) *command]);
         zmsg_dump (msg);
     }
-    zmsg_send (&msg, self->worker);
+    zmsg_send (&msg, zsock_resolve(self->worker));
 }
 
 
@@ -86,9 +84,15 @@ s_mdp_worker_send_to_broker (mdp_worker_t *self, char *command, char *option,
 void s_mdp_worker_connect_to_broker (mdp_worker_t *self)
 {
     if (self->worker)
-        zsocket_destroy (self->ctx, self->worker);
-    self->worker = zsocket_new (self->ctx, ZMQ_DEALER);
-    zmq_connect (self->worker, self->broker);
+        zsock_destroy (&self->worker);
+    self->worker = zsock_new (ZMQ_DEALER);
+
+    // A non-zero linger value is required for DISCONNECT to be sent
+    // when the worker is destroyed.  100 is arbitrary but chosen to be
+    // sufficient for common cases without significant delay in broken ones.
+    zsock_set_linger(self->worker,100);
+
+    zsock_connect (self->worker, "%s", self->broker);
     if (self->verbose)
         zclock_log ("I: connecting to broker at %s...", self->broker);
 
@@ -107,34 +111,19 @@ void s_mdp_worker_connect_to_broker (mdp_worker_t *self)
 //  Constructor
 
 mdp_worker_t *
-mdp_worker_new (zctx_t *ctx, char *broker,char *service, int verbose)
+mdp_worker_new (char *broker,char *service, int verbose)
 {
     assert (broker);
     assert (service);
 
     mdp_worker_t *self = (mdp_worker_t *) zmalloc (sizeof (mdp_worker_t));
 
-    if (ctx) {
-        self->ctx = ctx;
-        self->local_ctx = false;
-    }
-    else {
-        self->ctx = zctx_new ();
-        self->local_ctx = true;
-    }
-
     self->broker = strdup (broker);
     self->service = strdup (service);
     self->verbose = verbose;
     self->heartbeat = 2500;     //  msecs
     self->reconnect = 2500;     //  msecs
-
-    // A non-zero linger value is required for DISCONNECT to be sent
-    // when the worker is destroyed.  100 is arbitrary but chosen to be
-    // sufficient for common cases without significant delay in broken ones.
-    if (self->local_ctx) {
-        zctx_set_linger (self->ctx, 100);
-    }
+    self->worker = NULL;
 
     s_mdp_worker_connect_to_broker (self);
     return self;
@@ -153,9 +142,7 @@ mdp_worker_destroy (mdp_worker_t **self_p)
 
         s_mdp_worker_send_to_broker (self, MDPW_DISCONNECT, NULL, NULL);
 
-        if (self->local_ctx) {
-            zctx_destroy (&self->ctx);
-        }
+        zsock_destroy(&self->worker);
 
         free (self->broker);
         free (self->service);
@@ -184,9 +171,7 @@ mdp_worker_set_heartbeat (mdp_worker_t *self, int heartbeat)
 void
 mdp_worker_set_linger (mdp_worker_t *self, int linger)
 {
-    if (self->local_ctx) {
-        zctx_set_linger (self->ctx, linger);
-    }
+    zsock_set_linger(self->worker,linger);
 }
 
 
@@ -208,7 +193,7 @@ mdp_worker_setsockopt (mdp_worker_t *self, int option, const void *optval, size_
 {
     assert (self);
     assert (self->worker);
-    return zmq_setsockopt (self->worker, option, optval, optvallen);
+    return zmq_setsockopt (zsock_resolve(self->worker), option, optval, optvallen);
 }
 
 
@@ -220,7 +205,7 @@ mdp_worker_getsockopt (mdp_worker_t *self, 	int option, void *optval, size_t *op
 {
     assert (self);
     assert (self->worker);
-    return zmq_getsockopt (self->worker, option, optval, optvallen);
+    return zmq_getsockopt (zsock_resolve(self->worker), option, optval, optvallen);
 }
 
 
@@ -235,13 +220,13 @@ mdp_worker_recv (mdp_worker_t *self, zframe_t **reply_to_p)
 {
     while (true) {
         zmq_pollitem_t items [] = {
-            { self->worker,  0, ZMQ_POLLIN, 0 } };
+            { zsock_resolve(self->worker),  0, ZMQ_POLLIN, 0 } };
         int rc = zmq_poll (items, 1, self->heartbeat * ZMQ_POLL_MSEC);
         if (rc == -1)
             break;              //  Interrupted
 
         if (items [0].revents & ZMQ_POLLIN) {
-            zmsg_t *msg = zmsg_recv (self->worker);
+            zmsg_t *msg = zmsg_recv (zsock_resolve(self->worker));
             if (!msg)
                 break;          //  Interrupted
             if (self->verbose) {
@@ -278,7 +263,7 @@ mdp_worker_recv (mdp_worker_t *self, zframe_t **reply_to_p)
             }
             else
             if (zframe_streq (command, MDPW_HEARTBEAT))
-                ;               //  Do nothing for heartbeats
+                0;              //  Do nothing for heartbeats
             else
             if (zframe_streq (command, MDPW_DISCONNECT))
                 s_mdp_worker_connect_to_broker (self);

@@ -41,8 +41,7 @@
 //  The broker class defines a single broker instance
 
 typedef struct {
-    zctx_t *ctx;                //  Our context
-    void *socket;               //  Socket for clients & workers
+    zsock_t *socket;              //  Socket for clients & workers
     int verbose;                //  Print activity to stdout
     char *endpoint;             //  Broker binds to this endpoint
     zhash_t *services;          //  Hash of known services
@@ -119,8 +118,7 @@ s_broker_new (int verbose)
     broker_t *self = (broker_t *) zmalloc (sizeof (broker_t));
 
     //  Initialize broker state
-    self->ctx = zctx_new ();
-    self->socket = zsocket_new (self->ctx, ZMQ_ROUTER);
+    self->socket = zsock_new (ZMQ_ROUTER);
     self->verbose = verbose;
     self->services = zhash_new ();
     self->workers = zhash_new ();
@@ -135,7 +133,7 @@ s_broker_destroy (broker_t **self_p)
     assert (self_p);
     if (*self_p) {
         broker_t *self = *self_p;
-        zctx_destroy (&self->ctx);
+        zsock_destroy (&self->socket);
         zhash_destroy (&self->services);
         zhash_destroy (&self->workers);
         zlist_destroy (&self->waiting);
@@ -151,7 +149,7 @@ s_broker_destroy (broker_t **self_p)
 void
 s_broker_bind (broker_t *self, char *endpoint)
 {
-    zsocket_bind (self->socket, "%s", endpoint);
+    zsock_bind (self->socket, "%s", endpoint);
     zclock_log ("I: MDP broker/0.2.0 is active at %s", endpoint);
 }
 
@@ -578,7 +576,7 @@ int main (int argc, char *argv [])
     //  Get and process messages forever or until interrupted
     while (true) {
         zmq_pollitem_t items [] = {
-            { self->socket,  0, ZMQ_POLLIN, 0 } };
+            { zsock_resolve(self->socket),  0, ZMQ_POLLIN, 0 } };
         int rc = zmq_poll (items, 1, HEARTBEAT_INTERVAL * ZMQ_POLL_MSEC);
         if (rc == -1)
             break;              //  Interrupted
