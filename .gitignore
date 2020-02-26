@@ -6,7 +6,9 @@ config.status
 configure
 doc/Makefile
 doc/Makefile.in
+doc/mdp_test.1
 libtool
+src/libmajordomo.pc
 src/platform.h
 src/platform.h.in
 autom4te.cache/
