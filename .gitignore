@@ -20,4 +20,5 @@ src/*.la
 src/*.o
 src/mdp_test
 src/*.lo
-
+src/majordomo_selftest
+test-suite.log
