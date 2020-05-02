@@ -11,7 +11,7 @@ The protocol, Majordomo Protocol 0.2, is specified in
 [18/MDP](http://rfc.zeromq.org/spec:18)
 
 For the older implementation, based on the Guide, see
-[zeromq/majordomo](https://github.com/zeromq/majordomo/libmdp).
+[majordomo/libmdp](libmdp).
 
 Reference implementations of older wire protocols:
 
